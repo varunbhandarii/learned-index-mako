@@ -1,0 +1,4 @@
+# Keep LF endings so shell scripts and patches work on Linux even when edited on Windows.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
