@@ -86,6 +86,12 @@ if(LIM_BUILD_TESTS)
   target_link_libraries(alex_index_test PRIVATE lim_alex GTest::gtest_main)
   add_test(NAME alex_index_test COMMAND alex_index_test)
 
+  add_executable(read_mostly_lock_test tests/read_mostly_lock_test.cc)
+  set_target_properties(read_mostly_lock_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+  target_include_directories(read_mostly_lock_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+  target_link_libraries(read_mostly_lock_test PRIVATE Threads::Threads GTest::gtest_main)
+  add_test(NAME read_mostly_lock_test COMMAND read_mostly_lock_test)
+
   # alex_enabled_for() reads the environment once, so it gets its own process.
   add_executable(alex_config_test tests/alex_config_test.cc)
   set_target_properties(alex_config_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)

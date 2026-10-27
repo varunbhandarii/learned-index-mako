@@ -1,0 +1,325 @@
+20260927-08:23.27-669536(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+allocator::Initialize()
+  hugepgsize: 2097152
+  use MADV_WILLNEED: 1
+  mmap() region [0x7beaaab7f000, 0x7beaead7f000)
+cpu0 owns [0x7beaaac00000, 0x7beacac00000)
+cpu1 owns [0x7beacac00000, 0x7beaeac00000)
+Database Benchmark:
+  pid: 1110
+settings:
+  num-cpus    : 4
+  num-threads : 2
+  shardIndex  : 0
+  paxos_proc_name  : localhost
+  nshards     : 1
+  is_micro    : 0
+  is_replicated : 0
+  var-encode  : yes
+  allocator   : jemalloc
+system properties:
+  tuple_prefetch          : no
+  btree_node_prefetch     : yes
+tpcc settings:
+  cross_partition_transactions : 1
+  read_only_snapshots          : 1
+  partition_locks              : 0
+  separate_tree_per_partition  : 1
+  new_order_remote_item_pct    : 1
+  new_order_fast_id_gen        : 1
+  uniform_item_dist            : 0
+  order_status_scan_hack       : 0
+  workload_mix                 : [45, 43, 4, 4, 4]
+new table is createded with name: customer_0, table-id: 1, on shard-server id:0
+new table is createded with name: customer_1, table-id: 2, on shard-server id:0
+new table is createded with name: customer_name_idx_0, table-id: 3, on shard-server id:0
+new table is createded with name: customer_name_idx_1, table-id: 4, on shard-server id:0
+[learned-index-mako] table district_0 uses the ALEX index
+new table is createded with name: district_0, table-id: 5, on shard-server id:0
+[learned-index-mako] table district_1 uses the ALEX index
+new table is createded with name: district_1, table-id: 6, on shard-server id:0
+new table is createded with name: history_0, table-id: 7, on shard-server id:0
+new table is createded with name: history_1, table-id: 8, on shard-server id:0
+new table is createded with name: new_order_0, table-id: 9, on shard-server id:0
+new table is createded with name: new_order_1, table-id: 10, on shard-server id:0
+new table is createded with name: oorder_0, table-id: 11, on shard-server id:0
+new table is createded with name: oorder_1, table-id: 12, on shard-server id:0
+new table is createded with name: oorder_c_id_idx_0, table-id: 13, on shard-server id:0
+new table is createded with name: oorder_c_id_idx_1, table-id: 14, on shard-server id:0
+new table is createded with name: order_line_0, table-id: 15, on shard-server id:0
+new table is createded with name: order_line_1, table-id: 16, on shard-server id:0
+[learned-index-mako] table stock_0 uses the ALEX index
+new table is createded with name: stock_0, table-id: 17, on shard-server id:0
+[learned-index-mako] table stock_1 uses the ALEX index
+new table is createded with name: stock_1, table-id: 18, on shard-server id:0
+new table is createded with name: stock_data_0, table-id: 19, on shard-server id:0
+new table is createded with name: stock_data_1, table-id: 20, on shard-server id:0
+[learned-index-mako] table warehouse_0 uses the ALEX index
+new table is createded with name: warehouse_0, table-id: 21, on shard-server id:0
+[learned-index-mako] table warehouse_1 uses the ALEX index
+new table is createded with name: warehouse_1, table-id: 22, on shard-server id:0
+[learned-index-mako] table item uses the ALEX index
+new table is createded with name: item, table-id: 23, on shard-server id:0
+20260927-08:23.27-671957(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+[TRANSPORT] Using default: rrr
+20260927-08:23.27-672151(us) 01110 * Initialize      (rrr_rpc_backend.cc:58): RrrRpcBackend::Initialize: poll_thread_worker_ created, is_some=1
+20260927-08:23.27-672298(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+[TRANSPORT] Using default: rrr
+20260927-08:23.27-672474(us) 01110 * Initialize      (rrr_rpc_backend.cc:88): RrrRpcBackend initialized on 127.0.0.1:31007 (listening on 0.0.0.0:31007)
+20260927-08:23.27-672483(us) 01110 * FastTransport   (fasttransport.cc:116): FastTransport initialized with rrr/rpc backend on 127.0.0.1:31007
+20260927-08:23.27-672488(us) 01110 * RunEventLoop    (rrr_rpc_backend.cc:518): RrrRpcBackend::RunEventLoop: Starting event loop
+20260927-08:23.27-672537(us) 01110 * Initialize      (rrr_rpc_backend.cc:58): RrrRpcBackend::Initialize: poll_thread_worker_ created, is_some=1
+20260927-08:23.27-672597(us) 01110 * Initialize      (rrr_rpc_backend.cc:88): RrrRpcBackend initialized on 127.0.0.1:31008 (listening on 0.0.0.0:31008)
+20260927-08:23.27-672606(us) 01110 * FastTransport   (fasttransport.cc:116): FastTransport initialized with rrr/rpc backend on 127.0.0.1:31008
+20260927-08:23.27-672615(us) 01110 * RunEventLoop    (rrr_rpc_backend.cc:518): RrrRpcBackend::RunEventLoop: Starting event loop
+20260927-08:23.27-674463(us) 01110 ! run             (bench.cc:358):     # of loaders size:6
+start worker:1327
+[INFO] finished loading warehouse
+[INFO]   * average warehouse record length: 97 bytes
+[INFO] finished loading item
+[INFO]   * average item record length: 84.1739 bytes
+PinToWarehouseId(): coreid=2 pinned to whse=1 (partid=0)
+PinToWarehouseId(): coreid=3 pinned to whse=1 (partid=0)
+PinToWarehouseId(): coreid=3 pinned to whse=2 (partid=1)
+[INFO] finished loading district
+[INFO]   * average district record length: 99 bytes
+PinToWarehouseId(): coreid=2 pinned to whse=2 (partid=1)
+[INFO] finished loading stock
+[INFO]   * average stock record length: 8 bytes
+num batches: 30
+PinToWarehouseId(): coreid=4 pinned to whse=1 (partid=0)
+PinToWarehouseId(): coreid=5 pinned to whse=1 (partid=0)
+PinToWarehouseId(): coreid=5 pinned to whse=2 (partid=1)
+[INFO] finished loading order
+[INFO]   * average order_line record length: 11.1187 bytes
+[INFO]   * average oorder record length: 7.7038 bytes
+[INFO]   * average new_order record length: 12 bytes
+PinToWarehouseId(): coreid=4 pinned to whse=2 (partid=1)
+[INFO] finished loading customer
+[INFO]   * average customer record length: 153.862 bytes 
+timed region dataloading took 2689.76 ms
+DB size: 253.266 MB
+[0, 0, 0] txns persisted in loading phase
+[learned-index-mako] rebuilt 7 ALEX indexes in 8.6 ms
+20260927-08:23.30-373021(us) 01110 ! run             (bench.cc:414):     # of nthreads:2
+starting benchmark...
+--------------Finish loading data and wait for others completing load phase ------------
+tpcc: worker id 8 => warehouses [1, 2)
+tpcc: worker id 9 => warehouses [2, 3)
+No JEMALLOC_NO_RENAME
+No JEMALLOC_NO_RENAME
+20260927-08:23.30-374719(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+20260927-08:23.30-375010(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+20260927-08:23.30-375058(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+[TRANSPORT] Using default: rrr
+20260927-08:23.30-375269(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+[TRANSPORT] Using default: rrr
+20260927-08:23.30-375348(us) 01110 * Initialize      (rrr_rpc_backend.cc:58): RrrRpcBackend::Initialize: poll_thread_worker_ created, is_some=1
+20260927-08:23.30-375445(us) 01110 * Initialize      (rrr_rpc_backend.cc:88): RrrRpcBackend initialized on 127.0.0.1:31000 (listening on 0.0.0.0:31000)
+20260927-08:23.30-375460(us) 01110 * FastTransport   (fasttransport.cc:116): FastTransport initialized with rrr/rpc backend on 127.0.0.1:31000
+20260927-08:23.30-375530(us) 01110 * Initialize      (rrr_rpc_backend.cc:58): RrrRpcBackend::Initialize: poll_thread_worker_ created, is_some=1
+20260927-08:23.30-375594(us) 01110 * Initialize      (rrr_rpc_backend.cc:88): RrrRpcBackend initialized on 127.0.0.1:31001 (listening on 0.0.0.0:31001)
+20260927-08:23.30-375608(us) 01110 * FastTransport   (fasttransport.cc:116): FastTransport initialized with rrr/rpc backend on 127.0.0.1:31001
+20260927-08:23.30-375644(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+20260927-08:23.30-375773(us) 01110 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+20260927-08:23.30-375957(us) 01110 ! run             (bench.cc:465):     start the running time, runTime:30
+20260927-08:23.30-375997(us) 01110 ! run             (bench.cc:477):     runtime time left:30000 ms, bool:1
+20260927-08:23.31-386819(us) 01110 ! run             (bench.cc:477):     runtime time left:29000 ms, bool:1
+20260927-08:23.32-487352(us) 01110 ! run             (bench.cc:477):     runtime time left:28000 ms, bool:1
+20260927-08:23.33-496378(us) 01110 ! run             (bench.cc:477):     runtime time left:27000 ms, bool:1
+20260927-08:23.34-503186(us) 01110 ! run             (bench.cc:477):     runtime time left:26000 ms, bool:1
+20260927-08:23.35-541661(us) 01110 ! run             (bench.cc:477):     runtime time left:25000 ms, bool:1
+20260927-08:23.36-586940(us) 01110 ! run             (bench.cc:477):     runtime time left:24000 ms, bool:1
+20260927-08:23.37-609621(us) 01110 ! run             (bench.cc:477):     runtime time left:23000 ms, bool:1
+20260927-08:23.38-621739(us) 01110 ! run             (bench.cc:477):     runtime time left:22000 ms, bool:1
+20260927-08:23.39-632471(us) 01110 ! run             (bench.cc:477):     runtime time left:21000 ms, bool:1
+20260927-08:23.40-646541(us) 01110 ! run             (bench.cc:477):     runtime time left:20000 ms, bool:1
+20260927-08:23.41-662240(us) 01110 ! run             (bench.cc:477):     runtime time left:19000 ms, bool:1
+20260927-08:23.42-673572(us) 01110 ! run             (bench.cc:477):     runtime time left:18000 ms, bool:1
+20260927-08:23.43-684510(us) 01110 ! run             (bench.cc:477):     runtime time left:17000 ms, bool:1
+20260927-08:23.44-697435(us) 01110 ! run             (bench.cc:477):     runtime time left:16000 ms, bool:1
+20260927-08:23.45-706393(us) 01110 ! run             (bench.cc:477):     runtime time left:15000 ms, bool:1
+20260927-08:23.46-715651(us) 01110 ! run             (bench.cc:477):     runtime time left:14000 ms, bool:1
+20260927-08:23.47-725687(us) 01110 ! run             (bench.cc:477):     runtime time left:13000 ms, bool:1
+20260927-08:23.48-738324(us) 01110 ! run             (bench.cc:477):     runtime time left:12000 ms, bool:1
+20260927-08:23.49-747522(us) 01110 ! run             (bench.cc:477):     runtime time left:11000 ms, bool:1
+20260927-08:23.50-757588(us) 01110 ! run             (bench.cc:477):     runtime time left:10000 ms, bool:1
+20260927-08:23.51-767812(us) 01110 ! run             (bench.cc:477):     runtime time left:9000 ms, bool:1
+20260927-08:23.52-779766(us) 01110 ! run             (bench.cc:477):     runtime time left:8000 ms, bool:1
+20260927-08:23.53-791390(us) 01110 ! run             (bench.cc:477):     runtime time left:7000 ms, bool:1
+20260927-08:23.54-802457(us) 01110 ! run             (bench.cc:477):     runtime time left:6000 ms, bool:1
+20260927-08:23.55-824437(us) 01110 ! run             (bench.cc:477):     runtime time left:5000 ms, bool:1
+20260927-08:23.56-856388(us) 01110 ! run             (bench.cc:477):     runtime time left:4000 ms, bool:1
+20260927-08:23.57-866156(us) 01110 ! run             (bench.cc:477):     runtime time left:3000 ms, bool:1
+20260927-08:23.58-877670(us) 01110 ! run             (bench.cc:477):     runtime time left:2000 ms, bool:1
+20260927-08:23.59-889621(us) 01110 ! run             (bench.cc:477):     runtime time left:1000 ms, bool:1
+20260927-08:24.00-901720(us) 01110 ! run             (bench.cc:487):     runtime_plus:0
+[SHUTDOWN] Setting running=false to stop database worker threads
+[SHUTDOWN] Calling first stop() to stop client transports
+20260927-08:24.00-901829(us) 01110 jump out the while loop
+! stop            (bench.cc:333):     stop all erpc clients. set stop=false
+jump out the while loop
+20260927-08:24.00-901847(us) 01110 * PrintStats      (rrr_rpc_backend.cc:689): RrrRpcBackend request stats: msg_size_req_sent: 0 bytes, counter: 0, avg: -nan
+20260927-08:24.00-901915(us) 01110 * Stop            (rrr_rpc_backend.cc:599): RrrRpcBackend::Stop: BEGIN - Setting stop flag
+20260927-08:24.00-901938(us) 01110 * Stop            (rrr_rpc_backend.cc:602): RrrRpcBackend::Stop: Waiting for event loop to exit...
+20260927-08:24.00-901945(us) 01110 * Stop            (rrr_rpc_backend.cc:618): RrrRpcBackend::Stop: Event loop exited successfully
+20260927-08:24.00-901950(us) 01110 * Stop            (rrr_rpc_backend.cc:622): RrrRpcBackend::Stop: Signaling 0 request queues to stop
+20260927-08:24.00-901966(us) 01110 * Stop            (rrr_rpc_backend.cc:630): RrrRpcBackend::Stop: Signaling 0 response queues to stop
+20260927-08:24.00-901970(us) 01110 * Stop            (rrr_rpc_backend.cc:641): RrrRpcBackend::Stop: Server cleanup deferred to destructor
+20260927-08:24.00-901973(us) 01110 * Stop            (rrr_rpc_backend.cc:644): RrrRpcBackend::Stop: Closing client connections
+20260927-08:24.00-901979(us) 01110 * Stop            (rrr_rpc_backend.cc:648): RrrRpcBackend::Stop: Found 0 client connections to close
+20260927-08:24.00-901986(us) 01110 * Stop            (rrr_rpc_backend.cc:668): RrrRpcBackend::Stop: Closed 0 client connections
+20260927-08:24.00-901989(us) 01110 * Stop            (rrr_rpc_backend.cc:680): RrrRpcBackend stats: msg_size_resp_sent: 0 bytes, counter: 0, avg: -nan
+20260927-08:24.00-901996(us) 01110 * Stop            (rrr_rpc_backend.cc:683): RrrRpcBackend::Stop: END
+20260927-08:24.00-902002(us) 01110 * Stop            (rrr_rpc_backend.cc:599): RrrRpcBackend::Stop: BEGIN - Setting stop flag
+20260927-08:24.00-902006(us) 01110 * Stop            (rrr_rpc_backend.cc:602): RrrRpcBackend::Stop: Waiting for event loop to exit...
+20260927-08:24.00-902017(us) 01110 * Stop            (rrr_rpc_backend.cc:618): RrrRpcBackend::Stop: Event loop exited successfully
+20260927-08:24.00-902021(us) 01110 * Stop            (rrr_rpc_backend.cc:622): RrrRpcBackend::Stop: Signaling 0 request queues to stop
+20260927-08:24.00-902025(us) 01110 * Stop            (rrr_rpc_backend.cc:630): RrrRpcBackend::Stop: Signaling 0 response queues to stop
+20260927-08:24.00-902029(us) 01110 * Stop            (rrr_rpc_backend.cc:641): RrrRpcBackend::Stop: Server cleanup deferred to destructor
+20260927-08:24.00-902032(us) 01110 * Stop            (rrr_rpc_backend.cc:644): RrrRpcBackend::Stop: Closing client connections
+20260927-08:24.00-902039(us) 01110 * Stop            (rrr_rpc_backend.cc:648): RrrRpcBackend::Stop: Found 0 client connections to close
+20260927-08:24.00-902043(us) 01110 * Stop            (rrr_rpc_backend.cc:668): RrrRpcBackend::Stop: Closed 0 client connections
+20260927-08:24.00-902047(us) 01110 * Stop            (rrr_rpc_backend.cc:680): RrrRpcBackend stats: msg_size_resp_sent: 0 bytes, counter: 0, avg: -nan
+20260927-08:24.00-902051(us) 01110 * Stop            (rrr_rpc_backend.cc:683): RrrRpcBackend::Stop: END
+[SHUTDOWN] First stop() completed
+[SHUTDOWN] Joining 2 worker threads
+[SHUTDOWN] Joining worker 0
+20260927-08:24.00-902076(us) 01110 * PrintStats      (rrr_rpc_backend.cc:689): RrrRpcBackend request stats: msg_size_req_sent: 0 bytes, counter: 0, avg: -nan
+[SHUTDOWN] Worker 0 joined
+[SHUTDOWN] Joining worker 1
+[SHUTDOWN] Worker 1 joined
+[SHUTDOWN] All workers joined
+[SHUTDOWN] Calling stop_erpc_server()
+[STOP_SERVER] Stopping 2 server transports
+[STOP_SERVER] Stopping server transport 0
+20260927-08:24.01-902410(us) 01110 * Stop            (rrr_rpc_backend.cc:599): RrrRpcBackend::Stop: BEGIN - Setting stop flag
+20260927-08:24.01-902449(us) 01110 * Stop            (rrr_rpc_backend.cc:602): RrrRpcBackend::Stop: Waiting for event loop to exit...
+20260927-08:24.01-902539(us) 01110 * RunEventLoop    (rrr_rpc_backend.cc:583): RrrRpcBackend::RunEventLoop: Stop flag detected, exiting event loop
+20260927-08:24.01-902606(us) 01110 * RunEventLoop    (rrr_rpc_backend.cc:587): RrrRpcBackend::RunEventLoop: Exited cleanly
+20260927-08:24.01-902616(us) 01110 * erpc_server     (rpc_setup.cc:121): the erpc_server is terminated on shardIdx:0, alpha:0!
+20260927-08:24.01-912535(us) 01110 * Stop            (rrr_rpc_backend.cc:618): RrrRpcBackend::Stop: Event loop exited successfully
+20260927-08:24.01-912604(us) 01110 * Stop            (rrr_rpc_backend.cc:622): RrrRpcBackend::Stop: Signaling 0 request queues to stop
+20260927-08:24.01-912610(us) 01110 * Stop            (rrr_rpc_backend.cc:630): RrrRpcBackend::Stop: Signaling 0 response queues to stop
+20260927-08:24.01-912614(us) 01110 * Stop            (rrr_rpc_backend.cc:641): RrrRpcBackend::Stop: Server cleanup deferred to destructor
+20260927-08:24.01-912618(us) 01110 * Stop            (rrr_rpc_backend.cc:644): RrrRpcBackend::Stop: Closing client connections
+20260927-08:24.01-912639(us) 01110 * Stop            (rrr_rpc_backend.cc:648): RrrRpcBackend::Stop: Found 0 client connections to close
+20260927-08:24.01-912643(us) 01110 * Stop            (rrr_rpc_backend.cc:668): RrrRpcBackend::Stop: Closed 0 client connections
+20260927-08:24.01-912647(us) 01110 * Stop            (rrr_rpc_backend.cc:680): RrrRpcBackend stats: msg_size_resp_sent: 0 bytes, counter: 0, avg: -nan
+20260927-08:24.01-912652(us) 01110 * Stop            (rrr_rpc_backend.cc:683): RrrRpcBackend::Stop: END
+[STOP_SERVER] Server transport 0 stopped
+[STOP_SERVER] Stopping server transport 1
+20260927-08:24.01-912673(us) 01110 * Stop            (rrr_rpc_backend.cc:599): RrrRpcBackend::Stop: BEGIN - Setting stop flag
+20260927-08:24.01-912676(us) 01110 * Stop            (rrr_rpc_backend.cc:602): RrrRpcBackend::Stop: Waiting for event loop to exit...
+20260927-08:24.01-912700(us) 01110 * RunEventLoop    (rrr_rpc_backend.cc:583): RrrRpcBackend::RunEventLoop: Stop flag detected, exiting event loop
+20260927-08:24.01-912732(us) 01110 * RunEventLoop    (rrr_rpc_backend.cc:587): RrrRpcBackend::RunEventLoop: Exited cleanly
+20260927-08:24.01-912739(us) 01110 * erpc_server     (rpc_setup.cc:121): the erpc_server is terminated on shardIdx:0, alpha:1!
+20260927-08:24.01-922822(us) 01110 * Stop            (rrr_rpc_backend.cc:618): RrrRpcBackend::Stop: Event loop exited successfully
+20260927-08:24.01-922891(us) 01110 * Stop            (rrr_rpc_backend.cc:622): RrrRpcBackend::Stop: Signaling 0 request queues to stop
+20260927-08:24.01-922896(us) 01110 * Stop            (rrr_rpc_backend.cc:630): RrrRpcBackend::Stop: Signaling 0 response queues to stop
+20260927-08:24.01-922899(us) 01110 * Stop            (rrr_rpc_backend.cc:641): RrrRpcBackend::Stop: Server cleanup deferred to destructor
+20260927-08:24.01-922903(us) 01110 * Stop            (rrr_rpc_backend.cc:644): RrrRpcBackend::Stop: Closing client connections
+20260927-08:24.01-922907(us) 01110 * Stop            (rrr_rpc_backend.cc:648): RrrRpcBackend::Stop: Found 0 client connections to close
+20260927-08:24.01-922910(us) 01110 * Stop            (rrr_rpc_backend.cc:668): RrrRpcBackend::Stop: Closed 0 client connections
+20260927-08:24.01-922914(us) 01110 * Stop            (rrr_rpc_backend.cc:680): RrrRpcBackend stats: msg_size_resp_sent: 0 bytes, counter: 0, avg: -nan
+20260927-08:24.01-922918(us) 01110 * Stop            (rrr_rpc_backend.cc:683): RrrRpcBackend::Stop: END
+[STOP_SERVER] Server transport 1 stopped
+[STOP_SERVER] All server transports stopped
+[SHUTDOWN] stop_erpc_server() completed
+[SHUTDOWN] Calling second stop()
+20260927-08:24.01-922935(us) 01110 ! stop            (bench.cc:333):     stop all erpc clients. set stop=false
+[SHUTDOWN] Second stop() completed
+[SHUTDOWN] Calling do_txn_finish()
+[SHUTDOWN] do_txn_finish() completed
+--- n_commits per partition ---
+ par_id: 0, n_commits: 1488262
+ par_id: 1, n_commits: 1509785
+--- benchmark statistics ---
+runtime: 30.547 sec
+memory delta: 1933.25 MB
+n_commits: 2998047
+latency_numer_us: 36893488207822424
+latency_numer_us_remote: 0
+memory delta rate: 63.2879 MB/sec
+logical memory delta: 190.228 MB
+logical memory delta rate: 6.22738 MB/sec
+agg_nosync_throughput: 98145.4 ops/sec
+avg_nosync_per_core_throughput: 49072.7 ops/sec/core
+agg_throughput: 98145.4 ops/sec
+avg_per_core_throughput: 49072.7 ops/sec/core
+agg_persist_throughput: 98145.4 ops/sec
+avg_per_core_persist_throughput: 49072.7 ops/sec/core
+avg_latency: 1.23058e+07 ms
+avg_persist_latency: 0 ms
+agg_abort_rate: 12.9964 aborts/sec
+avg_per_core_abort_rate: 6.49818 aborts/sec/core
+  NewOrder_local_commit_latency: 0.0223728 ms
+  NewOrder_local_abort_latency: 0.908695 ms
+  NewOrder_local_abort_ratio: 8.96279e-05
+  Payment_local_commit_latency: 0.00797457 ms
+  Payment_local_abort_latency: 0.0325283 ms
+  Payment_local_abort_ratio: 7.75704e-06
+  Delivery_local_commit_latency: 0.0843016 ms
+  Delivery_local_abort_latency: -nan ms
+  Delivery_local_abort_ratio: 0
+  OrderStatus_local_commit_latency: 0.00915238 ms
+  OrderStatus_local_abort_latency: 0.027354 ms
+  OrderStatus_local_abort_ratio: 8.36848e-06
+  StockLevel_local_commit_latency: 0.07513 ms
+  StockLevel_local_abort_latency: 0.158281 ms
+  StockLevel_local_abort_ratio: 0.00220933
+  NewOrder_remote_ratio: 0 %
+  NewOrder_remote_abort_ratio: -nan %
+  NewOrder_remote_commit_latency: -nan ms
+  NewOrder_remote_abort_latency: -nan ms
+  Payment_remote_ratio: 0 %
+  Payment_remote_abort_ratio: -nan %
+  Payment_remote_commit_latency: -nan ms
+  Payment_remote_abort_latency: -nan ms
+--- system counters (for benchmark) ---
+--- perf counters (if enabled, for benchmark) ---
+--- allocator stats ---
+[allocator] ncpus=2
+[allocator] cpu=0 fully_faulted?=0 remaining=536870912 bytes
+[allocator] cpu=1 fully_faulted?=0 remaining=536870912 bytes
+---------------------------------------
+--- system counters for n_comits ---
+[STOP_SERVER] Stopping 2 server transports
+[STOP_SERVER] Stopping server transport 0
+20260927-08:24.01-923145(us) 01110 * Stop            (rrr_rpc_backend.cc:595): RrrRpcBackend::Stop: Already stopped, returning
+[STOP_SERVER] Server transport 0 stopped
+[STOP_SERVER] Stopping server transport 1
+20260927-08:24.01-923156(us) 01110 * Stop            (rrr_rpc_backend.cc:595): RrrRpcBackend::Stop: Already stopped, returning
+[STOP_SERVER] Server transport 1 stopped
+[STOP_SERVER] All server transports stopped
+[learned-index-mako] alex table=district_0 keys=10 index_bytes=440 bytes_per_key=44.0
+[learned-index-mako] alex table=district_1 keys=10 index_bytes=440 bytes_per_key=44.0
+[learned-index-mako] alex table=stock_0 keys=100000 index_bytes=2303784 bytes_per_key=23.0
+[learned-index-mako] alex table=stock_1 keys=100000 index_bytes=2303784 bytes_per_key=23.0
+[learned-index-mako] alex table=warehouse_0 keys=1 index_bytes=248 bytes_per_key=248.0
+[learned-index-mako] alex table=warehouse_1 keys=1 index_bytes=248 bytes_per_key=248.0
+[learned-index-mako] alex table=item keys=100000 index_bytes=2303784 bytes_per_key=23.0
+	Command being timed: "timeout 600 ./build/dbtest --num-threads 2 --shard-index 0 --shard-config src/mako/config/local-shards1-warehouses2.yml -F config/1leader_2followers/paxos2_shardidx0.yml -F config/occ_paxos.yml -P localhost"
+	User time (seconds): 61.01
+	System time (seconds): 8.91
+	Percent of CPU this job got: 203%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:34.34
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2259888
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 440860
+	Voluntary context switches: 467036
+	Involuntary context switches: 1514
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 56
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+rss_after_load_kib: 318900

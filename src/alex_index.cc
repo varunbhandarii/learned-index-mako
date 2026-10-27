@@ -7,16 +7,18 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
 #include <mutex>
-#include <shared_mutex>
+#include <shared_mutex>  // std::shared_lock
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "alex.h"
+#include "read_mostly_lock.h"
 
 #if ALEX_TRACK_LOOKUP_STATS || !defined(ALEX_LOOKUP_STAT)
 #error "alex_index.cc needs ALEX patched with patches/alex.patch and lookup stats disabled"
@@ -99,19 +101,19 @@ bool reverse_range(std::string_view start, const std::string_view* stop, size_t 
   return first <= last;
 }
 
-std::mutex& report_mutex() {
+std::mutex& registry_mutex() {
   static std::mutex mu;
   return mu;
 }
 
-std::vector<std::pair<std::string, const AlexIndex*>>& report_list() {
-  static std::vector<std::pair<std::string, const AlexIndex*>> list;
+std::vector<std::pair<std::string, AlexIndex*>>& registry() {
+  static std::vector<std::pair<std::string, AlexIndex*>> list;
   return list;
 }
 
 void print_report() {
-  std::lock_guard<std::mutex> lock(report_mutex());
-  for (const auto& [name, index] : report_list()) {
+  std::lock_guard<std::mutex> lock(registry_mutex());
+  for (const auto& [name, index] : registry()) {
     size_t keys = index->size();
     size_t bytes = index->index_bytes();
     std::fprintf(stderr,
@@ -123,7 +125,7 @@ void print_report() {
 }  // namespace
 
 struct AlexIndex::Impl {
-  mutable std::shared_mutex mu;
+  mutable ReadMostlyLock mu;
   // Held by pointer so rebuild() can swap in a freshly bulk-loaded map. Lookups go through
   // ALEX's non-const API, and only under mu.
   std::unique_ptr<Map> map = std::make_unique<Map>();
@@ -146,15 +148,15 @@ struct AlexIndex::Impl {
 AlexIndex::AlexIndex() : impl_(std::make_unique<Impl>()) {}
 
 AlexIndex::~AlexIndex() {
-  std::lock_guard<std::mutex> lock(report_mutex());
-  auto& list = report_list();
+  std::lock_guard<std::mutex> lock(registry_mutex());
+  auto& list = registry();
   list.erase(std::remove_if(list.begin(), list.end(),
                             [this](const auto& entry) { return entry.second == this; }),
              list.end());
 }
 
 void* AlexIndex::find(std::string_view key, uint64_t* version) const {
-  std::shared_lock<std::shared_mutex> lock(impl_->mu);
+  std::shared_lock<ReadMostlyLock> lock(impl_->mu);
   if (version) *version = impl_->version.load(std::memory_order_relaxed);
   uint64_t code;
   if (!impl_->encode(key, &code)) return nullptr;
@@ -163,7 +165,7 @@ void* AlexIndex::find(std::string_view key, uint64_t* version) const {
 }
 
 AlexIndex::InsertResult AlexIndex::insert_if_absent(std::string_view key, void* value) {
-  std::unique_lock<std::shared_mutex> lock(impl_->mu);
+  std::unique_lock<ReadMostlyLock> lock(impl_->mu);
   uint64_t old_version = impl_->version.load(std::memory_order_relaxed);
   InsertResult result{InsertStatus::kBadKey, nullptr, old_version, old_version};
   if (key.empty() || key.size() > kMaxKeyLen) return result;
@@ -187,7 +189,7 @@ AlexIndex::InsertResult AlexIndex::insert_if_absent(std::string_view key, void* 
 }
 
 bool AlexIndex::replace(std::string_view key, void* value) {
-  std::unique_lock<std::shared_mutex> lock(impl_->mu);
+  std::unique_lock<ReadMostlyLock> lock(impl_->mu);
   uint64_t code;
   if (!impl_->encode(key, &code)) return false;
   auto it = impl_->map->find(code);
@@ -197,7 +199,7 @@ bool AlexIndex::replace(std::string_view key, void* value) {
 }
 
 void* AlexIndex::erase(std::string_view key) {
-  std::unique_lock<std::shared_mutex> lock(impl_->mu);
+  std::unique_lock<ReadMostlyLock> lock(impl_->mu);
   uint64_t code;
   if (!impl_->encode(key, &code)) return nullptr;
   auto it = impl_->map->find(code);
@@ -210,7 +212,7 @@ void* AlexIndex::erase(std::string_view key) {
 }
 
 void AlexIndex::rebuild() {
-  std::unique_lock<std::shared_mutex> lock(impl_->mu);
+  std::unique_lock<ReadMostlyLock> lock(impl_->mu);
   std::vector<std::pair<uint64_t, void*>> entries;
   entries.reserve(impl_->count);
   for (auto it = impl_->map->begin(); !it.is_end(); ++it) entries.emplace_back(it.key(), it.payload());
@@ -221,7 +223,7 @@ void AlexIndex::rebuild() {
 
 size_t AlexIndex::scan(std::string_view lo, const std::string_view* hi, ScanState* state,
                        Entry* out, size_t max) const {
-  std::shared_lock<std::shared_mutex> lock(impl_->mu);
+  std::shared_lock<ReadMostlyLock> lock(impl_->mu);
   if (state->done) return 0;
   uint64_t version = impl_->version.load(std::memory_order_relaxed);
   if (!state->started) {
@@ -256,7 +258,7 @@ size_t AlexIndex::scan(std::string_view lo, const std::string_view* hi, ScanStat
 
 size_t AlexIndex::rscan(std::string_view lo, const std::string_view* hi, ScanState* state,
                         Entry* out, size_t max) const {
-  std::shared_lock<std::shared_mutex> lock(impl_->mu);
+  std::shared_lock<ReadMostlyLock> lock(impl_->mu);
   if (state->done) return 0;
   uint64_t version = impl_->version.load(std::memory_order_relaxed);
   if (!state->started) {
@@ -306,24 +308,37 @@ size_t AlexIndex::decode(uint64_t code, size_t key_len, char* out) {
 uint64_t AlexIndex::version() const { return impl_->version.load(std::memory_order_acquire); }
 
 size_t AlexIndex::size() const {
-  std::shared_lock<std::shared_mutex> lock(impl_->mu);
+  std::shared_lock<ReadMostlyLock> lock(impl_->mu);
   return impl_->count;
 }
 
 size_t AlexIndex::key_len() const {
-  std::shared_lock<std::shared_mutex> lock(impl_->mu);
+  std::shared_lock<ReadMostlyLock> lock(impl_->mu);
   return impl_->key_len;
 }
 
 size_t AlexIndex::index_bytes() const {
-  std::shared_lock<std::shared_mutex> lock(impl_->mu);
+  std::shared_lock<ReadMostlyLock> lock(impl_->mu);
   return static_cast<size_t>(impl_->map->data_size() + impl_->map->model_size());
 }
 
-void report_at_exit(const std::string& table_name, const AlexIndex* index) {
-  std::lock_guard<std::mutex> lock(report_mutex());
-  if (report_list().empty()) std::atexit(print_report);
-  report_list().emplace_back(table_name, index);
+void register_table(const std::string& table_name, AlexIndex* index) {
+  std::lock_guard<std::mutex> lock(registry_mutex());
+  if (registry().empty()) std::atexit(print_report);
+  registry().emplace_back(table_name, index);
+}
+
+void rebuild_registered_indexes() {
+  const char* setting = std::getenv("MAKO_ALEX_REBUILD");
+  if (setting && std::string(setting) == "0") return;
+  std::lock_guard<std::mutex> lock(registry_mutex());
+  if (registry().empty()) return;
+  const auto start = std::chrono::steady_clock::now();
+  for (const auto& entry : registry()) entry.second->rebuild();
+  const double ms =
+      std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+  std::fprintf(stderr, "[learned-index-mako] rebuilt %zu ALEX indexes in %.1f ms\n",
+               registry().size(), ms);
 }
 
 bool alex_enabled_for(const std::string& table_name) {

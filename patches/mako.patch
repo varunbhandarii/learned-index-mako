@@ -3,8 +3,9 @@ Changes to Mako (makodb/mako @ 0b62cf1) used by learned-index-mako.
 - MassTrans.hh: tables selected with MAKO_INDEX=alex keep their keys in lim::AlexIndex
   instead of Masstree. Values, locking, install and cleanup are unchanged; misses and
   scans observe the index's structural version for phantom protection.
-- CMakeLists.txt: builds lim_alex from the enclosing learned-index-mako checkout and
-  links it into the mako library.
+- CMakeLists.txt: builds lim_alex from the enclosing learned-index-mako checkout, links it
+  into the mako library, and adds the index microbenchmark (lim_index_bench).
+- bench.cc: once loading finishes, repacks every ALEX table with ALEX's bulk loader.
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 3a7c9af27..a0597267e 100644
@@ -35,8 +36,30 @@ index 3a7c9af27..a0597267e 100644
  add_apps(test_ordered_callbacks examples/test_ordered_callbacks.cc)
  add_apps(test_partitioned_queues examples/test_partitioned_queues.cc)
  add_apps(test_stress_partitioned_queues examples/test_stress_partitioned_queues.cc)
+diff --git a/src/mako/benchmarks/bench.cc b/src/mako/benchmarks/bench.cc
+index 33114d66f..43ed56f80 100644
+--- a/src/mako/benchmarks/bench.cc
++++ b/src/mako/benchmarks/bench.cc
+@@ -23,6 +23,7 @@
+ #include "deptran/s_main.h"
+ #include "benchmarks/sto/sync_util.hh"
+ #include "rpc_setup.h"
++#include "alex_index.h"  // learned-index-mako
+ #include <chrono>
+ #include <thread>
+ 
+@@ -405,6 +406,9 @@ bench_runner::run()
+       ALWAYS_ASSERT(false);
+     }
+   }
++  // learned-index-mako: the loaders built ALEX tables by inserts; repack them with ALEX's
++  // bulk loader now that loading is done (MAKO_ALEX_REBUILD=0 skips this).
++  lim::rebuild_registered_indexes();
+   } // end of f_mode==0
+ 
+   Warning("# of nthreads:%d",BenchmarkConfig::getInstance().getNthreads());
 diff --git a/src/mako/benchmarks/sto/MassTrans.hh b/src/mako/benchmarks/sto/MassTrans.hh
-index ccbeef5f4..24fab3675 100644
+index ccbeef5f4..69e0a8c77 100644
 --- a/src/mako/benchmarks/sto/MassTrans.hh
 +++ b/src/mako/benchmarks/sto/MassTrans.hh
 @@ -19,6 +19,14 @@
@@ -77,7 +100,7 @@ index ccbeef5f4..24fab3675 100644
 +    // where a table learns what it is. Entries are never migrated between indexes.
 +    if (!alex_ && !written_.load(std::memory_order_relaxed) && lim::alex_enabled_for(t)) {
 +      alex_ = std::make_unique<lim::AlexIndex>();
-+      lim::report_at_exit(t, alex_.get());
++      lim::register_table(t, alex_.get());
 +      std::cerr << "[learned-index-mako] table " << t << " uses the ALEX index" << std::endl;
 +    }
 +  }

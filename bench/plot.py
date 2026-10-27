@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Render the README charts as light and dark SVGs (standard library only).
 
-Usage: bench/plot.py <index-results-dir> <tpcc-t2-dir> <tpcc-t4-dir> <out-dir>
+Usage: bench/plot.py <out-dir> <index-results-dir> <tpcc-results-dir>...
 
-Reads summary.csv from the index microbenchmark and summary.md from the TPC-C runs.
+Reads summary.csv from the index microbenchmark and from each TPC-C results directory
+(named ...-t<threads>, as run_tpcc.sh writes them).
 Colors follow a validated categorical palette (slots 1-3 pass all-pairs color-vision
 checks in both modes); bars carry value labels because slot 3 is under 3:1 contrast on
 the light surface, and the README keeps the data tables beside each chart.
@@ -144,14 +145,17 @@ def lines(theme, title, subtitle, xs, series_names, values, decimals=0):
     return frame(theme, height, title, subtitle, series_names, body)
 
 
-def tpcc_throughput(summary_md):
-    text = Path(summary_md).read_text()
-    m = re.search(r"\| Throughput \(txn/s\) \| ([\d.]+) \| ([\d.]+) \|", text)
-    return float(m.group(1)), float(m.group(2))
+def tpcc_throughput(results_dir, engines):
+    """Median throughput per engine from a run_tpcc.sh results directory."""
+    rows = list(csv.DictReader(open(Path(results_dir) / "summary.csv")))
+    by_engine = {r["engine"]: float(r["value"]) for r in rows if r["metric"] == "throughput"}
+    return [by_engine[e] for e in engines]
 
 
 def main():
-    index_dir, t2_dir, t4_dir, out = map(Path, sys.argv[1:5])
+    out, index_dir = Path(sys.argv[1]), Path(sys.argv[2])
+    tpcc_dirs = sorted((Path(d) for d in sys.argv[3:]),
+                       key=lambda d: int(re.search(r"-t(\d+)$", d.name).group(1)))
     out.mkdir(parents=True, exist_ok=True)
     rows = list(csv.DictReader(open(index_dir / "summary.csv")))
     get = lambda idx, keys, threads, field: float(next(
@@ -162,15 +166,21 @@ def main():
     keysets = [("dense4", "Dense 4-byte (item)"), ("dense8", "Dense 8-byte (stock)"),
                ("random8", "Random 8-byte")]
     n = int(rows[0]["n"])
-    t2, t4 = tpcc_throughput(t2_dir / "summary.md"), tpcc_throughput(t4_dir / "summary.md")
+    tpcc_engines = ["masstree", "alex-inserts", "alex"]
+    tpcc_groups, tpcc_values = [], []
+    for d in tpcc_dirs:
+        threads = int(re.search(r"-t(\d+)$", d.name).group(1))
+        tpcc_groups.append(f"{threads} thread{'s' if threads > 1 else ''}")
+        tpcc_values.append([v / 1000 for v in tpcc_throughput(d, tpcc_engines)])
 
     for theme in THEMES:
         charts = {
             "tpcc-throughput": grouped_bars(
                 theme, "TPC-C throughput on Mako (higher is better)",
-                "Thousands of transactions per second, median of interleaved runs, 1 shard",
-                ["2 threads", "4 threads"], ["Masstree only", "ALEX on item, stock, warehouse, district"],
-                [[t2[0] / 1000, t2[1] / 1000], [t4[0] / 1000, t4[1] / 1000]]),
+                "Thousands of transactions per second (median); ALEX tables: item, stock, "
+                "warehouse, district",
+                tpcc_groups, ["Masstree only", "ALEX, built by inserts", "ALEX, rebuilt"],
+                tpcc_values),
             "lookup-latency": grouped_bars(
                 theme, "Point lookup, one thread (lower is better)",
                 f"Nanoseconds per uniform random lookup, {n:,} keys",

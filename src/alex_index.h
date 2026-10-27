@@ -20,7 +20,8 @@ namespace lim {
 // preserves byte order exactly, so ALEX's numeric order is the table's key order and
 // range scans walk the index in order. Nothing is hashed, so distinct keys never collide.
 //
-// All methods are thread-safe: readers share a lock and writers take it exclusively.
+// All methods are thread-safe. Readers share a ReadMostlyLock, which keeps concurrent
+// readers off each other's cache lines; writers take it exclusively.
 // version() changes on every insert or erase. An optimistic transaction that records the
 // version when a lookup misses, or when it scans, can detect phantoms by comparing it
 // again at commit time.
@@ -103,10 +104,15 @@ class AlexIndex {
   std::unique_ptr<Impl> impl_;
 };
 
-// Prints the index's key count and index_bytes() to stderr when the process exits, as
+// Registers a table's index with rebuild_registered_indexes() and with a report printed to
+// stderr when the process exits, as
 // "[learned-index-mako] alex table=<name> keys=<n> index_bytes=<n> bytes_per_key=<x>".
-// An index destroyed before then is dropped from the report.
-void report_at_exit(const std::string& table_name, const AlexIndex* index);
+// An index unregisters itself when destroyed.
+void register_table(const std::string& table_name, AlexIndex* index);
+
+// Rebuilds every registered index (see AlexIndex::rebuild()) unless MAKO_ALEX_REBUILD=0.
+// Mako calls this once loading finishes, since its loaders build tables by inserts.
+void rebuild_registered_indexes();
 
 // True when MAKO_INDEX=alex and table_name is listed in MAKO_ALEX_TABLES (comma-separated,
 // default "item,stock,warehouse,district"). A trailing "_<digits>" partition suffix is

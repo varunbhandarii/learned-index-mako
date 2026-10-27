@@ -231,6 +231,15 @@ TEST(AlexIndex, RebuildKeepsContentsAndVersion) {
   EXPECT_EQ(empty.find(be(1, 4)), nullptr);
 }
 
+TEST(AlexIndex, RebuildRegisteredIndexes) {
+  AlexIndex idx;
+  for (uint64_t k = 1; k <= 1000; ++k) idx.insert_if_absent(be(k, 4), ptr(k));
+  lim::register_table("rebuild_test", &idx);
+  lim::rebuild_registered_indexes();
+  EXPECT_EQ(idx.size(), 1000u);
+  for (uint64_t k = 1; k <= 1000; ++k) ASSERT_EQ(idx.find(be(k, 4)), ptr(k));
+}  // idx unregisters itself here, so the exit report never sees a dangling pointer
+
 TEST(AlexIndex, IndexBytesAreReported) {
   AlexIndex idx;
   for (uint64_t k = 1; k <= 100000; ++k) idx.insert_if_absent(be(k, 4), ptr(k));

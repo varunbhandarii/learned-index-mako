@@ -21,39 +21,54 @@ GCC 12. Raw logs and summaries are in [`bench/results/`](bench/results/).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/tpcc-throughput-dark.svg">
-  <img alt="TPC-C throughput: 100k vs 132k transactions/s at 2 threads, 184k vs 216k at 4 threads, Masstree only vs ALEX tables" src="docs/img/tpcc-throughput-light.svg" width="680">
+  <img alt="TPC-C throughput in thousands of transactions per second. 1 thread: Masstree 60, ALEX built by inserts 77, ALEX rebuilt 73. 2 threads: 119, 141, 141. 4 threads: 147, 207, 212." src="docs/img/tpcc-throughput-light.svg" width="680">
 </picture>
 
 One shard without replication, one warehouse per worker thread, Mako's 30-second
-measurement window. **Masstree** keeps every table on Masstree. **ALEX tables** moves
-`item`, `stock`, `warehouse` and `district` to ALEX; all other tables stay on Masstree.
-Medians of interleaved runs, with ranges in parentheses.
+measurement window. **Masstree** keeps every table on Masstree. The ALEX configurations
+move `item`, `stock`, `warehouse` and `district` to ALEX, either as Mako's loaders build
+it (**built by inserts**) or repacked with ALEX's bulk loader once loading finishes
+(**rebuilt**, the default). All other tables stay on Masstree. Medians of 3 interleaved
+runs per configuration, with ranges in parentheses.
 
-| | Masstree | ALEX tables | Change |
+| Throughput (txn/s) | Masstree | ALEX, built by inserts | ALEX, rebuilt |
 | :--- | ---: | ---: | ---: |
-| Throughput, 4 threads, 3 runs (txn/s) | 184,264 (168,715–187,181) | 215,850 (211,733–222,658) | **+17%** |
-| Throughput, 2 threads, 5 runs (txn/s) | 100,223 (96,842–116,593) | 131,963 (82,635–143,040) | +32%, ranges overlap |
-| StockLevel latency, 4 threads | 0.101 ms | 0.067 ms | **−34%** |
-| NewOrder latency, 4 threads | 0.024 ms | 0.020 ms | −14% |
-| Abort rate, 4 threads | 28 /s | 26 /s | no change |
-| Memory (RSS) after loading, 4 threads | 519 MiB | 518 MiB | no change |
-| Index size of the ALEX tables | | 23.4 bytes/key, 11 MiB in total | 2% of RSS |
+| 1 thread | 59,917 (57,028–62,631) | 76,540 (65,034–80,834) **+28%** | 73,376 (72,922–80,354) **+22%** |
+| 2 threads | 119,088 (106,216–126,895) | 141,462 (106,436–144,840) +19% | 140,830 (98,145–145,962) +18% |
+| 4 threads | 147,336 (142,968–147,434) | 206,948 (165,533–243,043) **+40%** | 211,893 (154,693–232,498) **+44%** |
+
+| At 4 threads | Masstree | ALEX, built by inserts | ALEX, rebuilt |
+| :--- | ---: | ---: | ---: |
+| StockLevel latency | 0.130 ms | 0.073 ms (−44%) | 0.073 ms (−44%) |
+| NewOrder latency | 0.030 ms | 0.021 ms (−31%) | 0.020 ms (−33%) |
+| Abort rate | 23 /s | 25 /s | 26 /s |
+| Memory (RSS) after loading | 518 MiB | 549 MiB | 525 MiB |
+| Loading time | 4.2 s | 5.0 s | 5.0 s, plus 32 ms to rebuild |
 
 What this shows:
 
-- **Faster point lookups.** StockLevel looks up about 200 `stock` rows per transaction and
-  NewOrder about 20 `item` and `stock` rows. TPC-C's keys are dense integers, so ALEX's
-  linear models predict positions almost exactly, and a lookup touches fewer cache lines
-  than a descent through Masstree.
+- **ALEX tables make TPC-C faster.** StockLevel looks up about 200 `stock` rows per
+  transaction and NewOrder about 20 `item` and `stock` rows. TPC-C's keys are dense
+  integers, so ALEX's linear models predict positions almost exactly, and a lookup touches
+  fewer cache lines than a descent through Masstree. At 1 and 4 threads every ALEX run
+  beat every Masstree run; at 2 threads the ranges overlap.
+- **The lock mattered more than the rebuild.** With `std::shared_mutex`, the first round
+  of measurements gained 17% at 4 threads
+  ([`bench/results/tpcc-shared-mutex-t4`](bench/results/tpcc-shared-mutex-t4/)); with the
+  read-mostly lock it gains 40–44%. Those were separate sessions on the same machine, so
+  compare the ratios, not the absolute numbers. Rebuilding barely changes TPC-C, even
+  though it makes lookups 2–3× faster in isolation (below): TPC-C's skewed accesses keep
+  hot rows in cache, and lookups are only part of each transaction.
 - **No memory saving.** The rows, not the index, take the memory. ALEX's index for these
-  tables is 23.4 bytes per key, about 2% of the process, so swapping it leaves RSS within
-  run-to-run noise.
+  tables is about 23 bytes per key, roughly 2% of the process; RSS stays within ±6%.
+  Rebuilding returns most of the extra memory that insert-built ALEX uses.
 - **No extra aborts.** Phantom protection for ALEX tables costs nothing here, because those
   tables get no inserts after loading.
+- **Loading is slower.** Inserting into ALEX costs more than into Masstree, and every
+  insert pays the read-mostly lock's writer cost.
 
-This is a small machine with short runs, so treat the size of the throughput gain as
-indicative: the 4-thread ranges are separate, but the 2-thread ranges overlap. Reproduce
-with `bench/run_tpcc.sh` (see [Build and run](#build-and-run)).
+This is a small machine with short runs, so treat the size of the gains as indicative.
+Reproduce with `bench/run_tpcc.sh` (see [Build and run](#build-and-run)).
 
 ### The index on its own
 
@@ -62,7 +77,8 @@ the database: one million keys, uniform random point lookups, values that are po
 that memory is the index alone, and Masstree configured exactly as Mako's tables are.
 **ALEX** is built by inserts, as Mako builds it while loading; **ALEX, rebuilt** is then
 repacked with ALEX's bulk loader (`AlexIndex::rebuild()`). Medians of 3 runs, one process
-per configuration.
+per configuration
+([`bench/results/index-2026-10-27`](bench/results/index-2026-10-27/)).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/lookup-latency-dark.svg">
@@ -71,7 +87,7 @@ per configuration.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/lookup-scaling-dark.svg">
-  <img alt="Lookup throughput at 1, 2 and 4 threads: Masstree scales to 9.8 million per second, ALEX flattens near 7" src="docs/img/lookup-scaling-light.svg" width="680">
+  <img alt="Lookup throughput at 1, 2 and 4 threads on stock-like keys: rebuilt ALEX reaches 21.7 million per second, Masstree 12.1, ALEX built by inserts 11.3" src="docs/img/lookup-scaling-light.svg" width="680">
 </picture>
 
 <picture>
@@ -79,25 +95,23 @@ per configuration.
   <img alt="Index memory in bytes per key for Masstree, ALEX and rebuilt ALEX on three key sets" src="docs/img/index-memory-light.svg" width="680">
 </picture>
 
-| Key set | Lookup, 1 thread: Masstree / ALEX / rebuilt | Lookups/s, 4 threads: Masstree / rebuilt | Bytes per key: Masstree / ALEX / rebuilt |
+| Key set | Lookup, 1 thread: Masstree / ALEX / rebuilt | Lookups/s, 4 threads: Masstree / ALEX / rebuilt | Bytes per key: Masstree / ALEX / rebuilt |
 | :--- | :--- | :--- | :--- |
-| Dense 4-byte ids (item) | 467 / 307 / 166 ns | 9.8 M / 6.9 M | 23.3 / 25.0 / 24.1 |
-| Dense 8-byte pairs (stock) | 473 / 471 / 169 ns | 9.8 M / 7.4 M | 23.3 / 25.6 / 25.1 |
-| Random 8-byte keys | 550 / 268 / 202 ns | 7.7 M / 6.8 M | 33.7 / 25.2 / 24.1 |
+| Dense 4-byte ids (item) | 332 / 248 / 127 ns | 12.2 / 18.2 / 23.4 M | 23.3 / 24.9 / 24.0 |
+| Dense 8-byte pairs (stock) | 346 / 342 / 110 ns | 12.1 / 11.3 / 21.7 M | 23.3 / 25.6 / 25.0 |
+| Random 8-byte keys | 441 / 200 / 137 ns | 9.6 / 20.6 / 20.4 M | 33.7 / 25.2 / 23.9 |
 
 What this shows:
 
 - **A packed learned index is much faster per lookup.** Rebuilt, ALEX answers a lookup in
-  166–202 ns against Masstree's 467–550 ns, 2.7–2.8× faster on one thread. Built by
-  inserts, its gain depends on the keys: 1.5× on item-like ids, none on stock-like pairs.
-  Mako builds its tables by inserts, so rebuilding ALEX tables after loading is the
-  obvious next step.
-- **The reader lock limits scaling.** Masstree's lock-free reads reach 9.8 M lookups/s on
-  4 threads. ALEX stops near 7 M, because every lookup takes the table's reader lock and
-  the threads contend for that lock's cache line. TPC-C still gains, because lookups are
-  only part of each transaction.
+  110–137 ns against Masstree's 332–441 ns, 2.6–3.2× faster on one thread. Built by
+  inserts, its gain depends on the keys: 1.3× on item-like ids, none on stock-like pairs.
+- **It now scales past Masstree.** On 4 threads, rebuilt ALEX serves 1.8–2.1× Masstree's
+  lookups per second. With `std::shared_mutex` it managed only 0.7–0.9× Masstree, because
+  every reader updated the same lock word
+  ([`bench/results/index-2026-10-27-shared-mutex`](bench/results/index-2026-10-27-shared-mutex/)).
 - **Memory is a tie on TPC-C keys.** On dense keys both indexes use 23–26 bytes per key.
-  On random keys, where Masstree's nodes fill less evenly, ALEX uses 27% less.
+  On random keys, where Masstree's nodes fill less evenly, ALEX uses 25–29% less.
 
 ### With replication
 
@@ -132,7 +146,8 @@ numeric ranges, so it matches Masstree's scan semantics for every bound.
 A table uses ALEX when `MAKO_INDEX=alex` and its name is in `MAKO_ALEX_TABLES` (default
 `item,stock,warehouse,district`, the TPC-C tables with keys of 8 bytes or less). Every
 other table stays on Masstree. A table's index is chosen once, when Mako names it, before
-any data is loaded.
+any data is loaded. When loading finishes, every ALEX table is repacked with ALEX's bulk
+loader, which takes milliseconds; `MAKO_ALEX_REBUILD=0` skips that step.
 
 ### Transactions stay serializable
 
@@ -152,10 +167,20 @@ unchanged. Two things needed real work ([`patches/mako.patch`](patches/mako.patc
 
 ### Concurrency
 
-Readers share a reader-writer lock, and writers take it exclusively. ALEX is
-single-threaded, and its lookups also update per-node statistics, so even shared-lock
-reads would race. [`patches/alex.patch`](patches/alex.patch) makes those updates
-optional, and the adapter turns them off.
+ALEX is single-threaded, so each table has a reader-writer lock. Two details make that
+work:
+
+- **Readers don't share a cache line.** With `std::shared_mutex`, every lookup updates the
+  same lock word, so readers on different cores slow each other down. In
+  [`ReadMostlyLock`](src/read_mostly_lock.h), each reader thread counts itself in its own
+  64-byte slot and then checks a writer flag. A writer raises the flag and waits for every
+  slot to drain. With sequentially consistent ordering, one side always sees the other.
+  Writers pay more, which suits tables that are read on every transaction and almost
+  never change after loading. (The old lock also let readers starve writers: the
+  concurrency test took 26 s with it and under 1 s now.)
+- **Lookups write nothing.** ALEX's lookups update per-node statistics, so even
+  shared-lock reads would race. [`patches/alex.patch`](patches/alex.patch) makes those
+  updates optional, and the adapter turns them off.
 
 ### Bugs found in ALEX
 
@@ -186,8 +211,12 @@ itself.
 - a randomized differential test of 20,000 operations per key length (1 to 8 bytes)
   against `std::map`, using key bytes such as `0x00`, `0x7f`, `0x80` and `0xff` to hit
   padding and boundary cases;
-- a concurrency test with readers checking every value they see while a writer inserts
-  and erases.
+- a concurrency test with readers checking every value they see while a writer inserts,
+  erases and rebuilds.
+
+[`tests/read_mostly_lock_test.cc`](tests/read_mostly_lock_test.cc) checks that readers
+share the lock, that writers and readers exclude each other, and that readers never see
+a half-finished write under load.
 
 CI runs them as a plain build, with AddressSanitizer + UndefinedBehaviorSanitizer, and
 with ThreadSanitizer, and checks that `patches/mako.patch` applies to the pinned Mako.
@@ -196,6 +225,7 @@ with ThreadSanitizer, and checks that `patches/mako.patch` applies to the pinned
 
 ```
 src/alex_index.{h,cc}   order-preserving ALEX adapter (compiled as C++17, see below)
+src/read_mostly_lock.h  reader-writer lock whose readers don't share a cache line
 patches/alex.patch      ALEX fixes, applied to a copy at build time
 patches/mako.patch      Mako integration: MassTrans.hh and the CMake hook
 tests/                  unit, differential and concurrency tests
@@ -224,9 +254,9 @@ Mako with ALEX, and the benchmarks (Linux; the Docker image has every dependency
 docker build -t learned-index-mako docker/
 docker run --rm -it -v "$PWD:/lim" learned-index-mako
 scripts/build_mako.sh          # fetches pinned Mako, applies the patch, builds the binaries
-bench/run_tpcc.sh 2 3          # TPC-C: 2 threads, 3 runs per configuration
+bench/run_tpcc.sh 2 3          # TPC-C: 2 threads, 3 runs of each configuration
 bench/run_index_bench.sh       # index microbenchmark: 1M keys, 3 runs
-python3 bench/plot.py bench/results/index-<date> bench/results/<tpcc-t2> bench/results/<tpcc-t4> docs/img
+python3 bench/plot.py docs/img bench/results/index-<date> bench/results/tpcc-<date>-t*
 ```
 
 ## Limitations
@@ -236,12 +266,11 @@ python3 bench/plot.py bench/results/index-<date> bench/results/<tpcc-t2> bench/r
 - Phantom protection is per index, not per node: any insert into an ALEX table aborts
   concurrent transactions that missed or scanned in it. Fine for read-mostly tables,
   costly for insert-heavy ones.
-- One reader-writer lock per table, which caps lookup scaling (see the microbenchmark).
-  ALEX tables get no structural changes after loading, so lookups could skip the lock; a
-  concurrent learned index such as ALEX+ from the
-  [GRE benchmark](https://github.com/gre4index/GRE) would also scale further.
-- ALEX tables are built by inserts and not rebuilt after loading, which leaves most of
-  ALEX's lookup advantage unused.
+- Writers to an ALEX table exclude all its readers, and every insert pays the read-mostly
+  lock's writer cost. That suits read-mostly tables; for write-heavy ones, a concurrent
+  learned index such as ALEX+ from the [GRE benchmark](https://github.com/gre4index/GRE)
+  would fit better.
+- The 4-vCPU test machine can't show how far the read-mostly lock scales.
 - Replicas keep their tables on Masstree, because Mako's followers never learn table
   names. Selecting ALEX by table id, or sending names to followers, would fix that.
 - Mako is pinned at its November 2025 commit (`0b62cf1`).
