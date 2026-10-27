@@ -20,7 +20,9 @@ RUN bash /tmp/apt_packages.sh && rm -rf /tmp/apt_packages.sh /var/lib/apt/lists/
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# The checkout is bind-mounted and owned by the host user; let git operate on it.
+RUN git config --global --add safe.directory '*'
+
 ENV MODE=perf
-ENV ENABLE_BORROW_CHECKING=OFF
 WORKDIR /lim
 CMD ["/bin/bash"]

@@ -21,6 +21,7 @@ values() {
 }
 
 metric() { values "$1" "$2" | median; }
+spread() { values "$1" "$2" | sort -g | awk 'NR==1 {lo=$1} {hi=$1} END {if (NR) printf "%.0f–%.0f\n", lo, hi; else print "NA"}'; }
 mib() { values "$1" "$2" | awk '{printf "%.1f\n", $1/1024}' | median; }
 load_ms() {
   for f in "$DIR/$1"-run*.log; do
@@ -37,6 +38,7 @@ echo "| Metric | Masstree | ALEX tables |"
 echo "| :--- | ---: | ---: |"
 row() { echo "| $1 | $(metric masstree "$2") | $(metric alex "$2") |"; }
 row "Throughput (txn/s)" agg_throughput
+echo "| Throughput range over runs | $(spread masstree agg_throughput) | $(spread alex agg_throughput) |"
 row "Committed transactions" n_commits
 row "Abort rate (aborts/s)" agg_abort_rate
 for t in NewOrder Payment Delivery OrderStatus StockLevel; do

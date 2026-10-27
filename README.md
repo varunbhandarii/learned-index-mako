@@ -14,7 +14,38 @@ range scans.
 
 ## Results
 
-<!-- RESULTS -->
+TPC-C on Mako: one shard without replication, one warehouse per worker thread, Mako's
+30-second measurement window. **Masstree** keeps every table on Masstree. **ALEX tables**
+moves `item`, `stock`, `warehouse` and `district` to ALEX; all other tables stay on
+Masstree. Numbers are medians of interleaved runs (ranges in parentheses), measured on a
+4-vCPU, 8 GB Docker Desktop VM on a Windows 11 laptop with GCC 12. Raw logs and summaries
+are in [`bench/results/`](bench/results/).
+
+| | Masstree | ALEX tables | Change |
+| :--- | ---: | ---: | ---: |
+| Throughput, 4 threads, 3 runs (txn/s) | 184,264 (168,715–187,181) | 215,850 (211,733–222,658) | **+17%** |
+| Throughput, 2 threads, 5 runs (txn/s) | 100,223 (96,842–116,593) | 131,963 (82,635–143,040) | +32%, ranges overlap |
+| StockLevel latency, 4 threads | 0.101 ms | 0.067 ms | **−34%** |
+| NewOrder latency, 4 threads | 0.024 ms | 0.020 ms | −14% |
+| Abort rate, 4 threads | 28 /s | 26 /s | no change |
+| Memory (RSS) after loading, 4 threads | 519 MiB | 518 MiB | no change |
+| Index size of the ALEX tables | | 23.4 bytes/key, 11 MiB in total | 2% of RSS |
+
+What this shows:
+
+- **Faster point lookups.** StockLevel looks up about 200 `stock` rows per transaction and
+  NewOrder about 20 `item` and `stock` rows. TPC-C's keys are dense integers, so ALEX's
+  linear models predict positions almost exactly, and a lookup touches fewer cache lines
+  than a descent through Masstree.
+- **No memory saving.** The rows, not the index, take the memory. ALEX's index for these
+  tables is 23.4 bytes per key, about 2% of the process, so swapping it leaves RSS within
+  run-to-run noise.
+- **No extra aborts.** Phantom protection for ALEX tables costs nothing here, because those
+  tables get no inserts after loading.
+
+This is a small machine with short runs, so treat the size of the throughput gain as
+indicative: the 4-thread ranges are separate, but the 2-thread ranges overlap. Reproduce
+with `bench/run_tpcc.sh` (see [Build and run](#build-and-run)).
 
 ## How it works
 
@@ -146,9 +177,11 @@ This is a rebuild of a CSE 532 (Database Systems) course project,
 [alex-integration-mako](https://github.com/varunbhandarii/alex-integration-mako), built
 with Manush Patel and Dharma Bagadia. That version mapped keys to integers with
 `std::stoull` and hashing, which made distinct keys collide and forced every range scan to
-sort the whole table. It also skipped phantom protection for ALEX tables. Its reported
-memory saving came from runs that committed hundreds of times fewer transactions than the
-baseline.
+sort the whole table, and it skipped phantom protection for ALEX tables. In its own logs,
+ALEX runs committed 17 transactions per second against Masstree's 21,141, so its reported
+3.4× memory saving came from runs that did several hundred times less work. This rebuild
+puts only suitable tables on ALEX, keeps keys in order, and is faster than Masstree on
+the same benchmark.
 
 ## Credits
 
