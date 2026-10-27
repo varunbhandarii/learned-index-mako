@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: unit tests (${{ matrix.sanitizer }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [none, address, thread]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch ALEX (the unit tests don't need Mako)
+        run: git submodule update --init third_party/ALEX
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends cmake libgtest-dev
+      - name: Let ThreadSanitizer map its shadow memory
+        if: matrix.sanitizer == 'thread'
+        run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: Configure
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          ${{ matrix.sanitizer != 'none' && format('-DLIM_SANITIZE={0}', matrix.sanitizer) || '' }}
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  mako-patch:
+    name: Mako patch applies to the pinned commit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned Mako
+        run: git submodule update --init --depth 1 third_party/mako
+      - name: Check patch
+        run: git -C third_party/mako apply --check "$PWD/patches/mako.patch"

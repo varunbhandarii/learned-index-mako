@@ -1,0 +1,266 @@
+Changes to ALEX (microsoft/ALEX @ 4370da6) used by learned-index-mako.
+
+1. ALEX_TRACK_LOOKUP_STATS: lookups update per-node statistics, which makes concurrent
+   lookups a data race even under a shared lock. Defining ALEX_TRACK_LOOKUP_STATS=0
+   compiles those updates out. The default (1) keeps ALEX's behaviour.
+2. Bounds check in AlexDataNode::get_next_filled_position(): find_lower() and find_upper()
+   can pass pos == data_capacity_, which read one bitmap word past the end of the array.
+   Found by the randomized test in tests/alex_index_test.cc under ThreadSanitizer.
+3. Alex::delete_node() downcast each node after destroying it, which is undefined
+   behaviour (reported by UBSan). It now casts once, before destroying.
+4. extract_rightmost_one() negated the bitmap word as int64_t, which overflows when only
+   the top bit is set (reported by UBSan). It now negates as uint64_t; the result is the
+   same bit pattern.
+
+diff --git a/src/core/alex.h b/src/core/alex.h
+index b3f3746..8d4ff9f 100644
+--- a/src/core/alex.h
++++ b/src/core/alex.h
+@@ -418,7 +418,7 @@ class Alex {
+       }
+       cur = node->children_[bucketID];
+       if (cur->is_leaf_) {
+-        stats_.num_node_lookups += cur->level_;
++        ALEX_LOOKUP_STAT(stats_.num_node_lookups += cur->level_);
+         auto leaf = static_cast<data_node_type*>(cur);
+         // Doesn't really matter if rounding is incorrect, we just want it to be
+         // fast.
+@@ -471,7 +471,7 @@ class Alex {
+       cur = node->children_[bucketID];
+     }
+ 
+-    stats_.num_node_lookups += cur->level_;
++    ALEX_LOOKUP_STAT(stats_.num_node_lookups += cur->level_);
+     return static_cast<data_node_type*>(cur);
+   }
+ #endif
+@@ -623,11 +623,13 @@ class Alex {
+     if (node == nullptr) {
+       return;
+     } else if (node->is_leaf_) {
+-      data_node_allocator().destroy(static_cast<data_node_type*>(node));
+-      data_node_allocator().deallocate(static_cast<data_node_type*>(node), 1);
++      auto data_node = static_cast<data_node_type*>(node);
++      data_node_allocator().destroy(data_node);
++      data_node_allocator().deallocate(data_node, 1);
+     } else {
+-      model_node_allocator().destroy(static_cast<model_node_type*>(node));
+-      model_node_allocator().deallocate(static_cast<model_node_type*>(node), 1);
++      auto model_node = static_cast<model_node_type*>(node);
++      model_node_allocator().destroy(model_node);
++      model_node_allocator().deallocate(model_node, 1);
+     }
+   }
+ 
+@@ -904,7 +906,7 @@ class Alex {
+   // If you instead want an iterator to the left-most key with the input value,
+   // use lower_bound()
+   typename self_type::Iterator find(const T& key) {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_key(key);
+     if (idx < 0) {
+@@ -915,7 +917,7 @@ class Alex {
+   }
+ 
+   typename self_type::ConstIterator find(const T& key) const {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_key(key);
+     if (idx < 0) {
+@@ -937,7 +939,7 @@ class Alex {
+ 
+   // Returns an iterator to the first key no less than the input value
+   typename self_type::Iterator lower_bound(const T& key) {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_lower(key);
+     return Iterator(leaf, idx);  // automatically handles the case where idx ==
+@@ -945,7 +947,7 @@ class Alex {
+   }
+ 
+   typename self_type::ConstIterator lower_bound(const T& key) const {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_lower(key);
+     return ConstIterator(leaf, idx);  // automatically handles the case where
+@@ -954,7 +956,7 @@ class Alex {
+ 
+   // Returns an iterator to the first key greater than the input value
+   typename self_type::Iterator upper_bound(const T& key) {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_upper(key);
+     return Iterator(leaf, idx);  // automatically handles the case where idx ==
+@@ -962,7 +964,7 @@ class Alex {
+   }
+ 
+   typename self_type::ConstIterator upper_bound(const T& key) const {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_upper(key);
+     return ConstIterator(leaf, idx);  // automatically handles the case where
+@@ -982,7 +984,7 @@ class Alex {
+   // This avoids the overhead of creating an iterator
+   // Returns null pointer if there is no exact match of the key
+   P* get_payload(const T& key) const {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     int idx = leaf->find_key(key);
+     if (idx < 0) {
+@@ -995,7 +997,7 @@ class Alex {
+   // Looks for the last key no greater than the input value
+   // Conceptually, this is equal to the last key before upper_bound()
+   typename self_type::Iterator find_last_no_greater_than(const T& key) {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     const int idx = leaf->upper_bound(key) - 1;
+     if (idx >= 0) {
+@@ -1018,7 +1020,7 @@ class Alex {
+   // find_last_no_greater_than(key)
+   // This avoids the overhead of creating an iterator
+   P* get_payload_last_no_greater_than(const T& key) {
+-    stats_.num_lookups++;
++    ALEX_LOOKUP_STAT(stats_.num_lookups++);
+     data_node_type* leaf = get_leaf(key);
+     const int idx = leaf->upper_bound(key) - 1;
+     if (idx >= 0) {
+diff --git a/src/core/alex_base.h b/src/core/alex_base.h
+index 82ae846..6acd722 100644
+--- a/src/core/alex_base.h
++++ b/src/core/alex_base.h
+@@ -51,6 +51,20 @@ typedef unsigned __int32 uint32_t;
+ #define forceinline inline
+ #endif
+ 
++// Lookups update statistics (lookup counts, search iterations) that ALEX's cost model uses
++// when it later restructures nodes. Those writes make concurrent lookups a data race even
++// under a shared lock, and make reader threads contend for the same cache lines. Defining
++// ALEX_TRACK_LOOKUP_STATS=0 compiles them out (inserts share the search routines, so their
++// search-iteration counts go too); the default keeps ALEX's original behaviour.
++#ifndef ALEX_TRACK_LOOKUP_STATS
++#define ALEX_TRACK_LOOKUP_STATS 1
++#endif
++#if ALEX_TRACK_LOOKUP_STATS
++#define ALEX_LOOKUP_STAT(stmt) stmt
++#else
++#define ALEX_LOOKUP_STAT(stmt)
++#endif
++
+ namespace alex {
+ 
+ /*** Linear model and model builder ***/
+@@ -167,7 +181,7 @@ struct AlexCompare {
+ // Extract the rightmost 1 in the binary representation.
+ // e.g. extract_rightmost_one(010100100) = 000000100
+ inline uint64_t extract_rightmost_one(uint64_t value) {
+-  return value & -static_cast<int64_t>(value);
++  return value & (~value + 1);
+ }
+ 
+ // Remove the rightmost 1 in the binary representation.
+diff --git a/src/core/alex_nodes.h b/src/core/alex_nodes.h
+index 2a01fce..5306145 100644
+--- a/src/core/alex_nodes.h
++++ b/src/core/alex_nodes.h
+@@ -1454,7 +1454,7 @@ class AlexDataNode : public AlexNode<T, P> {
+   // Searches for the last non-gap position equal to key
+   // If no positions equal to key, returns -1
+   int find_key(const T& key) {
+-    num_lookups_++;
++    ALEX_LOOKUP_STAT(num_lookups_++);
+     int predicted_pos = predict_position(key);
+ 
+     // The last key slot with a certain value is guaranteed to be a real key
+@@ -1471,7 +1471,7 @@ class AlexDataNode : public AlexNode<T, P> {
+   // Returns position in range [0, data_capacity]
+   // Compare with lower_bound()
+   int find_lower(const T& key) {
+-    num_lookups_++;
++    ALEX_LOOKUP_STAT(num_lookups_++);
+     int predicted_pos = predict_position(key);
+ 
+     int pos = exponential_search_lower_bound(predicted_pos, key);
+@@ -1482,7 +1482,7 @@ class AlexDataNode : public AlexNode<T, P> {
+   // Returns position in range [0, data_capacity]
+   // Compare with upper_bound()
+   int find_upper(const T& key) {
+-    num_lookups_++;
++    ALEX_LOOKUP_STAT(num_lookups_++);
+     int predicted_pos = predict_position(key);
+ 
+     int pos = exponential_search_upper_bound(predicted_pos, key);
+@@ -1521,6 +1521,11 @@ class AlexDataNode : public AlexNode<T, P> {
+         return data_capacity_;
+       }
+     }
++    // find_lower() and find_upper() pass pos == data_capacity_ when the key is beyond the
++    // node's last slot. Without this check the bitmap is read one word past its end.
++    if (pos >= data_capacity_) {
++      return data_capacity_;
++    }
+ 
+     int curBitmapIdx = pos >> 6;
+     uint64_t curBitmapData = bitmap_[curBitmapIdx];
+@@ -1546,7 +1551,7 @@ class AlexDataNode : public AlexNode<T, P> {
+   // Compare with find_upper()
+   template <class K>
+   int upper_bound(const K& key) {
+-    num_lookups_++;
++    ALEX_LOOKUP_STAT(num_lookups_++);
+     int position = predict_position(key);
+     return exponential_search_upper_bound(position, key);
+   }
+@@ -1564,7 +1569,7 @@ class AlexDataNode : public AlexNode<T, P> {
+       while (bound < size &&
+              key_greater(ALEX_DATA_NODE_KEY_AT(m - bound), key)) {
+         bound *= 2;
+-        num_exp_search_iterations_++;
++        ALEX_LOOKUP_STAT(num_exp_search_iterations_++);
+       }
+       l = m - std::min<int>(bound, size);
+       r = m - bound / 2;
+@@ -1573,7 +1578,7 @@ class AlexDataNode : public AlexNode<T, P> {
+       while (bound < size &&
+              key_lessequal(ALEX_DATA_NODE_KEY_AT(m + bound), key)) {
+         bound *= 2;
+-        num_exp_search_iterations_++;
++        ALEX_LOOKUP_STAT(num_exp_search_iterations_++);
+       }
+       l = m + bound / 2;
+       r = m + std::min<int>(bound, size);
+@@ -1603,7 +1608,7 @@ class AlexDataNode : public AlexNode<T, P> {
+   // Compare with find_lower()
+   template <class K>
+   int lower_bound(const K& key) {
+-    num_lookups_++;
++    ALEX_LOOKUP_STAT(num_lookups_++);
+     int position = predict_position(key);
+     return exponential_search_lower_bound(position, key);
+   }
+@@ -1621,7 +1626,7 @@ class AlexDataNode : public AlexNode<T, P> {
+       while (bound < size &&
+              key_greaterequal(ALEX_DATA_NODE_KEY_AT(m - bound), key)) {
+         bound *= 2;
+-        num_exp_search_iterations_++;
++        ALEX_LOOKUP_STAT(num_exp_search_iterations_++);
+       }
+       l = m - std::min<int>(bound, size);
+       r = m - bound / 2;
+@@ -1629,7 +1634,7 @@ class AlexDataNode : public AlexNode<T, P> {
+       int size = data_capacity_ - m;
+       while (bound < size && key_less(ALEX_DATA_NODE_KEY_AT(m + bound), key)) {
+         bound *= 2;
+-        num_exp_search_iterations_++;
++        ALEX_LOOKUP_STAT(num_exp_search_iterations_++);
+       }
+       l = m + bound / 2;
+       r = m + std::min<int>(bound, size);

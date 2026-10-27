@@ -1,0 +1,349 @@
+Changes to Mako (makodb/mako @ 0b62cf1) used by learned-index-mako.
+
+- MassTrans.hh: tables selected with MAKO_INDEX=alex keep their keys in lim::AlexIndex
+  instead of Masstree. Values, locking, install and cleanup are unchanged; misses and
+  scans observe the index's structural version for phantom protection.
+- CMakeLists.txt: builds lim_alex from the enclosing learned-index-mako checkout and
+  links it into the mako library.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3a7c9af27..23e0a75a1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -681,6 +681,12 @@ target_compile_definitions(mako PUBLIC CONFIG_H=\"${CONFIG_H}\")
+ target_include_directories(mako PUBLIC ${LIBEVENT_INCLUDE_DIRS})
+ set_target_properties(mako PROPERTIES OUTPUT_NAME "mako")
+ 
++# learned-index-mako: the ALEX-backed index used by MassTrans (MAKO_INDEX=alex). LIM_ROOT
++# is the learned-index-mako checkout that holds this tree as third_party/mako.
++set(LIM_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." CACHE PATH "learned-index-mako checkout")
++add_subdirectory("${LIM_ROOT}" "${CMAKE_CURRENT_BINARY_DIR}/learned-index-mako")
++target_link_libraries(mako PUBLIC lim_alex)
++
+ 
+ # ------------------------------------- build apps -----------------------------------------------
+ 
+diff --git a/src/mako/benchmarks/sto/MassTrans.hh b/src/mako/benchmarks/sto/MassTrans.hh
+index ccbeef5f4..24fab3675 100644
+--- a/src/mako/benchmarks/sto/MassTrans.hh
++++ b/src/mako/benchmarks/sto/MassTrans.hh
+@@ -19,6 +19,14 @@
+ #include "common.hh"
+ #include "stdlib.h"
+ 
++// learned-index-mako: tables selected by MAKO_INDEX=alex keep their keys in ALEX.
++#include "alex_index.h"
++#include <atomic>
++#include <cstdlib>
++#include <iostream>
++#include <memory>
++#include <string_view>
++
+ #define RCU 1
+ #define ABORT_ON_WRITE_READ_CONFLICT 0
+ 
+@@ -51,6 +59,11 @@ public:
+   bool is_remote;
+   std::string table_name_;
+ 
++  // When set, this table's keys live in ALEX and table_ (Masstree) stays empty. Chosen
++  // once, when the table is named, before anything is written to it.
++  std::unique_ptr<lim::AlexIndex> alex_;
++  std::atomic<bool> written_{false};
++
+ protected:
+ 
+   typedef Box versioned_value;
+@@ -82,7 +95,16 @@ public:
+ 
+   const std::string& get_table_name() const { return table_name_; }
+ 
+-  void set_table_name(const std::string& t) { table_name_ = t; }
++  void set_table_name(const std::string& t) {
++    table_name_ = t;
++    // Tables are preallocated under numeric names and renamed when opened, so this is
++    // where a table learns what it is. Entries are never migrated between indexes.
++    if (!alex_ && !written_.load(std::memory_order_relaxed) && lim::alex_enabled_for(t)) {
++      alex_ = std::make_unique<lim::AlexIndex>();
++      lim::report_at_exit(t, alex_.get());
++      std::cerr << "[learned-index-mako] table " << t << " uses the ALEX index" << std::endl;
++    }
++  }
+ 
+   unsigned long long int get_table_id() const override{
+     return table_id;
+@@ -128,9 +150,17 @@ public:
+     //   2) found a key, but updated by other writes 
+     /// in the original implement, throw exception to distinguish case2
+     unlocked_cursor_type lp(table_, key);
+-    bool found = lp.find_unlocked(*ti.ti);
++    versioned_value *e = nullptr;
++    uint64_t alex_version = 0;
++    bool found;
++    if (alex_) {
++      e = alex_find(key, &alex_version);
++      found = e != nullptr;
++    } else {
++      found = lp.find_unlocked(*ti.ti);
++      if (found) e = lp.value();
++    }
+     if (found) {
+-      versioned_value *e = lp.value();
+       auto item = t_read_only_item(e);
+       if (!validityCheck(item, e)) { 
+         //
+@@ -159,6 +189,8 @@ public:
+       item.observe(tversion_type(elem_vers));
+       if (TThread::is_multiversion())
+         return MultiVersionValue::mvGET(retval, (char*)e->data(), TThread::txn->get_current_term(), sync_util::sync_logger::hist_timestamp);
++    } else if (alex_) {
++      observe_alex_version(alex_version);
+     } else {
+       //Warning("Not found a value");
+       ensureNotFound(lp.node(), lp.full_version_value());
+@@ -169,9 +201,17 @@ public:
+   template <typename K>
+   bool transDelete(const K& key, threadinfo_type& ti = mythreadinfo) {
+     unlocked_cursor_type lp(table_, key);
+-    bool found = lp.find_unlocked(*ti.ti);
++    versioned_value *e = nullptr;
++    uint64_t alex_version = 0;
++    bool found;
++    if (alex_) {
++      e = alex_find(key, &alex_version);
++      found = e != nullptr;
++    } else {
++      found = lp.find_unlocked(*ti.ti);
++      if (found) e = lp.value();
++    }
+     if (found) {
+-      versioned_value *e = lp.value();
+       Version v = e->version();
+       fence();
+       auto item = t_item(e);
+@@ -205,6 +245,9 @@ public:
+       // same as inserts we need to Store (copy) key so we can lookup to remove later
+       item.template add_write<key_write_value_type>(key).add_flags(delete_bit);
+       return found;
++    } else if (alex_) {
++      observe_alex_version(alex_version);
++      return found;
+     } else {
+       ensureNotFound(lp.node(), lp.full_version_value());
+       return found;
+@@ -214,6 +257,11 @@ public:
+ private:
+   template <bool INSERT, bool SET, typename StringType, typename ValueType>
+   bool trans_write(const StringType& key, const ValueType& value, bool(*compar)(const std::string& newValue,const std::string& oldValue), threadinfo_type& ti = mythreadinfo) {
++    if (!written_.load(std::memory_order_relaxed))
++      written_.store(true, std::memory_order_relaxed);
++    if (alex_)
++      return alex_trans_write<INSERT, SET>(key, value, compar);
++
+     // optimization to do an unlocked lookup first
+     if (SET) {
+       unlocked_cursor_type lp(table_, key);
+@@ -310,6 +358,8 @@ public:
+ 
+ 
+   size_t approx_size() const {
++    if (alex_)
++      return alex_->size();
+     // looks like if we want to implement this we have to tree walkers and all sorts of annoying things like that. could also possibly
+     // do a range query and just count keys
+     return 0;
+@@ -387,6 +437,10 @@ public:
+       }
+     };
+ 
++    if (alex_) {
++      alex_scan</*Reverse=*/false>(begin, end, value_callback);
++      return;
++    }
+     range_scanner<decltype(node_callback), decltype(value_callback)> scanner(end, node_callback, value_callback);
+     table_.scan(begin, true, scanner, *ti.ti);
+   }
+@@ -439,6 +493,10 @@ public:
+       }
+     };
+ 
++    if (alex_) {
++      alex_scan</*Reverse=*/true>(begin, end, value_callback);
++      return;
++    }
+     range_scanner<decltype(node_callback), decltype(value_callback), true> scanner(end, node_callback, value_callback);
+     table_.rscan(begin, true, scanner, *ti.ti);
+   }
+@@ -535,6 +593,10 @@ public:
+         return txn.try_lock(item, vv->version());
+     }
+   bool check(TransItem& item, Transaction&) override {
++    if (is_alex_version(item)) {
++      // Any insert or erase since the observation could be a phantom.
++      return alex_->version() == item.template read_value<uint64_t>();
++    }
+     if (is_inter(item)) {
+       auto n = untag_inter(item.key<leaf_type*>());
+       auto cur_version = n->full_version_value();
+@@ -636,6 +698,12 @@ public:
+   }
+ 
+   bool remove(const Str& key, threadinfo_type& ti = mythreadinfo) {
++    if (alex_) {
++      auto *e = static_cast<versioned_value*>(alex_->erase(key_view(key)));
++      if (e)
++        e->deallocate_rcu(*ti.ti);
++      return e != nullptr;
++    }
+     cursor_type lp(table_, key);
+     bool found = lp.find_locked(*ti.ti);
+     lp.value()->deallocate_rcu(*ti.ti);
+@@ -675,13 +743,19 @@ protected:
+         // copied version is going to be invalid because we just had to mark e invalid
+         new_location->version() &= ~invalid_bit;
+       }
+-      cursor_type lp(table_, key);
+-      // TODO: not even trying to pass around threadinfo here
+-      bool found = lp.find_locked(*mythreadinfo.ti);
+-      (void)found;
+-      assert(found);
+-      lp.value() = new_location;
+-      lp.finish(0, *mythreadinfo.ti);
++      if (alex_) {
++        bool replaced = alex_->replace(key_view(key), new_location);
++        (void)replaced;
++        assert(replaced);
++      } else {
++        cursor_type lp(table_, key);
++        // TODO: not even trying to pass around threadinfo here
++        bool found = lp.find_locked(*mythreadinfo.ti);
++        (void)found;
++        assert(found);
++        lp.value() = new_location;
++        lp.finish(0, *mythreadinfo.ti);
++      }
+       // now rcu free "e"
+       e->deallocate_rcu(*mythreadinfo.ti);
+     }
+@@ -761,6 +835,121 @@ protected:
+     return false;
+   }
+ 
++  // ---- learned-index-mako: tables whose keys live in ALEX ----
++  //
++  // Values are the same versioned_value objects Masstree tables use, so reads, writes,
++  // install, unlock and cleanup work unchanged. What differs is phantom protection:
++  // instead of observing Masstree node versions, a transaction observes the ALEX index's
++  // structural version on every miss and scan, and check() fails if any key was inserted
++  // or erased since. That is coarser than per-node validation, but tables that suit ALEX
++  // (TPC-C item, stock, warehouse, district) have no inserts after loading.
++
++  static constexpr uintptr_t alex_version_bit = 1 << 1;  // pointers here are 8-byte aligned
++
++  versioned_value* alex_version_key() const {
++    return reinterpret_cast<versioned_value*>(reinterpret_cast<uintptr_t>(alex_.get()) |
++                                              alex_version_bit);
++  }
++  static bool is_alex_version(const TransItem& item) {
++    return reinterpret_cast<uintptr_t>(item.key<versioned_value*>()) & alex_version_bit;
++  }
++
++  template <typename K>
++  static std::string_view key_view(const K& key) {
++    Str s(key);
++    return std::string_view(s.data(), s.length());
++  }
++
++  template <typename K>
++  versioned_value* alex_find(const K& key, uint64_t* version) const {
++    return static_cast<versioned_value*>(alex_->find(key_view(key), version));
++  }
++
++  void observe_alex_version(uint64_t version) {
++    auto item = t_read_only_item(alex_version_key());
++    if (Opacity)
++      item.add_read_opaque(version);
++    else
++      item.add_read(version);
++  }
++
++  // Like updateNodeVersion(): this transaction's own insert must not invalidate a version
++  // it observed just before.
++  void update_alex_version(uint64_t old_version, uint64_t new_version) {
++    if (auto item = Sto::check_item(this, alex_version_key())) {
++      if (item->has_read() && item->template read_value<uint64_t>() == old_version)
++        item->update_read(old_version, new_version);
++    }
++  }
++
++  template <typename K>
++  [[noreturn]] void alex_bad_key(const K& key) const {
++    std::cerr << "[learned-index-mako] table " << table_name_ << ": a "
++              << key_view(key).size() << "-byte key does not fit its ALEX index (all keys "
++              << "must have the same length, at most " << lim::AlexIndex::kMaxKeyLen
++              << " bytes). Remove the table from MAKO_ALEX_TABLES." << std::endl;
++    std::abort();
++  }
++
++  // trans_write() for ALEX tables, following the Masstree path: an existing key goes
++  // through handlePutFound(), and a new key is inserted at once with invalid_bit set, so
++  // other transactions treat it as uncommitted until install() clears the bit.
++  template <bool INSERT, bool SET, typename StringType, typename ValueType>
++  bool alex_trans_write(const StringType& key, const ValueType& value,
++                        bool(*compar)(const std::string& newValue, const std::string& oldValue)) {
++    uint64_t version = 0;
++    versioned_value *e = alex_find(key, &version);
++    if (!e) {
++      if (!INSERT) {
++        observe_alex_version(version);
++        return false;
++      }
++      versioned_value* val = (versioned_value*)versioned_value::make(value, invalid_bit);
++      auto r = alex_->insert_if_absent(key_view(key), val);
++      if (r.status == lim::AlexIndex::InsertStatus::kInserted) {
++        update_alex_version(r.old_version, r.new_version);
++        auto item = Sto::new_item(this, val);
++        item.template add_write<key_write_value_type>(key).add_flags(insert_bit);
++        return false;  // like the Masstree path: "found" is false for a new key
++      }
++      if (r.status == lim::AlexIndex::InsertStatus::kBadKey)
++        alex_bad_key(key);
++      val->deallocate_rcu(*mythreadinfo.ti);  // never published
++      e = static_cast<versioned_value*>(r.existing);  // another transaction inserted it first
++    }
++    if (compar != nullptr && !compar(value, e->read_value()))
++      return false;
++    return handlePutFound<INSERT, SET>(e, key, value);
++  }
++
++  // Range scan with Masstree's semantics: forward visits begin <= key < end, reverse visits
++  // begin >= key > end, and an empty end means no bound. Entries are copied out in batches
++  // so that no index lock is held while value_callback runs.
++  template <bool Reverse, typename ValueCallback>
++  void alex_scan(Str begin, Str end, ValueCallback& value_callback) {
++    std::string_view stop(end.data(), end.length());
++    const std::string_view* stop_ptr = end ? &stop : nullptr;
++    lim::AlexIndex::ScanState state;
++    lim::AlexIndex::Entry batch[64];
++    char key[lim::AlexIndex::kMaxKeyLen];
++    bool observed = false;
++    while (!state.done) {
++      size_t n = Reverse ? alex_->rscan(key_view(begin), stop_ptr, &state, batch, 64)
++                         : alex_->scan(key_view(begin), stop_ptr, &state, batch, 64);
++      if (state.conflict)
++        Sto::abort();
++      if (!observed) {
++        observe_alex_version(state.version);
++        observed = true;
++      }
++      for (size_t i = 0; i < n; ++i) {
++        size_t len = lim::AlexIndex::decode(batch[i].code, state.key_len, key);
++        if (!value_callback(Str(key, len), static_cast<versioned_value*>(batch[i].value)))
++          return;
++      }
++    }
++  }
++
+   template <typename T>
+   TransProxy t_item(T e) {
+     return Sto::item(this, e);

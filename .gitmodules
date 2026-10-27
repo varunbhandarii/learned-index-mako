@@ -1,3 +1,7 @@
 [submodule "third_party/ALEX"]
 	path = third_party/ALEX
 	url = https://github.com/microsoft/ALEX.git
+[submodule "third_party/mako"]
+	path = third_party/mako
+	url = https://github.com/makodb/mako.git
+	shallow = true
