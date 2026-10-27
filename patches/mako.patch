@@ -7,10 +7,10 @@ Changes to Mako (makodb/mako @ 0b62cf1) used by learned-index-mako.
   links it into the mako library.
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3a7c9af27..23e0a75a1 100644
+index 3a7c9af27..92b044acc 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -681,6 +681,12 @@ target_compile_definitions(mako PUBLIC CONFIG_H=\"${CONFIG_H}\")
+@@ -681,6 +681,15 @@ target_compile_definitions(mako PUBLIC CONFIG_H=\"${CONFIG_H}\")
  target_include_directories(mako PUBLIC ${LIBEVENT_INCLUDE_DIRS})
  set_target_properties(mako PROPERTIES OUTPUT_NAME "mako")
  
@@ -19,6 +19,9 @@ index 3a7c9af27..23e0a75a1 100644
 +set(LIM_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." CACHE PATH "learned-index-mako checkout")
 +add_subdirectory("${LIM_ROOT}" "${CMAKE_CURRENT_BINARY_DIR}/learned-index-mako")
 +target_link_libraries(mako PUBLIC lim_alex)
++# The borrow-check targets read each target's own include directories, not those it
++# inherits from linked libraries, so also add the header path for targets defined below.
++include_directories("${LIM_ROOT}/src")
 +
  
  # ------------------------------------- build apps -----------------------------------------------
