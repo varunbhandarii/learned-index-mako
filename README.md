@@ -160,7 +160,9 @@ optional, and the adapter turns them off.
 ### Bugs found in ALEX
 
 The randomized differential test (below), run under sanitizers, found four problems in
-ALEX itself, fixed in [`patches/alex.patch`](patches/alex.patch):
+ALEX itself, fixed in [`patches/alex.patch`](patches/alex.patch). The memory-safety and
+undefined-behaviour fixes are proposed upstream, with regression tests, in
+[microsoft/ALEX#39](https://github.com/microsoft/ALEX/pull/39).
 
 1. **Out-of-bounds read.** `find_lower()`/`find_upper()` can pass `pos == data_capacity_`
    to `get_next_filled_position()`, which then reads one bitmap word past the array when
