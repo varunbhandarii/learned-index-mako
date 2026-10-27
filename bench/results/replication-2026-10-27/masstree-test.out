@@ -1,0 +1,24 @@
+=========================================
+Testing 1-shard setup with replication
+=========================================
+Starting shard 0...
+Running experiments for 30 seconds...
+Stopping shards...
+
+=========================================
+Checking test results...
+=========================================
+
+Checking test_1shard_replication.sh_shard0-localhost-2.log:
+-----------------
+  ✓ Found 'agg_persist_throughput' keyword
+    agg_persist_throughput: 31290.8 ops/sec
+  ✓ NewOrder_remote_abort_ratio: -nan (< 20%)
+
+Checking test_1shard_replication.sh_shard0-p1-2.log:
+-----------------
+  ✓ replay_batch: 2413 (> 1000)
+
+=========================================
+All checks passed!
+=========================================

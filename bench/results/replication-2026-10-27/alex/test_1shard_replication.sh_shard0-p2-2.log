@@ -1,0 +1,157 @@
+=========================================
+Configuration:
+=========================================
+  Number of shards:  1
+  Shard index:       0
+  Number of threads: 2
+  Cluster:           p2
+  Micro benchmark:   disabled
+  Replicated mode:   enabled
+=========================================
+20260927-07:14.31-391394(us) 00202 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:78] 2026-10-27 07:14:31.392 | PWD : /work/lim/third_party/mako
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:276] 2026-10-27 07:14:31.392 | starting process 202
+I [/work/lim/third_party/mako/src/deptran/config.cc:290] 2026-10-27 07:14:31.392 | LoadYML: config/1leader_2followers/paxos2_shardidx0.yml
+I [/work/lim/third_party/mako/src/deptran/config.cc:290] 2026-10-27 07:14:31.393 | LoadYML: config/occ_paxos.yml
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:285] 2026-10-27 07:14:31.394 | server_infos, number of sites: 2, proc_name: p2
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:291] 2026-10-27 07:14:31.415 | parition id of each Paxos group is 1, site-name: s302, site-id: 6
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:291] 2026-10-27 07:14:31.442 | parition id of each Paxos group is 0, site-name: s301, site-id: 2
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:297] 2026-10-27 07:14:31.442 | running machine-id: 2
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:92] 2026-10-27 07:14:31.442 | launching site: 2, bind address 0.0.0.0:17201
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:106] 2026-10-27 07:14:31.442 | waiting for server setup threads.
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:92] 2026-10-27 07:14:31.442 | launching site: 6, bind address 0.0.0.0:17202
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:198] 2026-10-27 07:14:31.442 | [service]loc_id: 2, name: s301, proc: p2, id: 2
+starting server at 0.0.0.0:17201
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:198] 2026-10-27 07:14:31.443 | [service]loc_id: 2, name: s302, proc: p2, id: 6
+starting server at 0.0.0.0:17202
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:221] 2026-10-27 07:14:31.443 | Server s301 ready at 0.0.0.0:17201
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:221] 2026-10-27 07:14:31.443 | Server s302 ready at 0.0.0.0:17202
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:14] 2026-10-27 07:14:31.443 | setup paxos communicator
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:14] 2026-10-27 07:14:31.443 | setup paxos communicator
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:31.443 | connect to site: 127.0.0.1:17001 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:31.443 | connect to site: 127.0.0.1:17001 (attempt 0)
+E [/work/lim/third_party/mako/src/rrr/rpc/client.cpp:194] 2026-10-27 07:14:31.444 | rrr::Client: connect(127.0.0.1:17001): Connection refused
+E [/work/lim/third_party/mako/src/rrr/rpc/client.cpp:194] 2026-10-27 07:14:31.444 | rrr::Client: connect(127.0.0.1:17001): Connection refused
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17001 (attempt 1)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17101 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17201 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17301 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17002 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17102 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17202 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17302 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:103] 2026-10-27 07:14:32.444 | site 2 launched!
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17001 (attempt 1)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17101 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17201 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17301 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17002 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17102 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17202 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17302 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:103] 2026-10-27 07:14:32.445 | site 6 launched!
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:110] 2026-10-27 07:14:32.445 | done waiting for server setup threads.
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:255] 2026-10-27 07:14:32.445 | heartbeat setup for s301 on 0.0.0.0:27201
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:255] 2026-10-27 07:14:32.445 | heartbeat setup for s302 on 0.0.0.0:27202
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:117] 2026-10-27 07:14:32.445 | server workers' communicators setup
+allocator::Initialize()
+  hugepgsize: 2097152
+  use MADV_WILLNEED: 1
+  mmap() region [0x741c6fa00000, 0x741cafc00000)
+cpu0 owns [0x741c6fa00000, 0x741c8fa00000)
+cpu1 owns [0x741c8fa00000, 0x741cafa00000)
+Database Benchmark:
+  pid: 202
+settings:
+  num-cpus    : 4
+  num-threads : 2
+  shardIndex  : 0
+  paxos_proc_name  : p2
+  nshards     : 1
+  is_micro    : 0
+  is_replicated : 1
+  var-encode  : yes
+  allocator   : jemalloc
+system properties:
+  tuple_prefetch          : no
+  btree_node_prefetch     : yes
+20260927-07:14.36-454140(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:6, wait_time:1s
+
+20260927-07:14.37-463997(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:9, wait_time:2s
+
+we can start a advancer
+start the advancer thread...
+20260927-07:14.38-464200(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:185, wait_time:3s
+
+20260927-07:14.39-464316(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:339, wait_time:4s
+
+20260927-07:14.40-464432(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:476, wait_time:5s
+
+20260927-07:14.41-466805(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:612, wait_time:6s
+
+20260927-07:14.42-466914(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:733, wait_time:7s
+
+20260927-07:14.43-467036(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:861, wait_time:8s
+
+20260927-07:14.44-467224(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:993, wait_time:9s
+
+20260927-07:14.45-467394(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1120, wait_time:10s
+
+20260927-07:14.46-470637(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1246, wait_time:11s
+
+20260927-07:14.47-470764(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1374, wait_time:12s
+
+20260927-07:14.48-470891(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1493, wait_time:13s
+
+20260927-07:14.49-471051(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1613, wait_time:14s
+
+20260927-07:14.50-471140(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1730, wait_time:15s
+
+20260927-07:14.51-471271(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1837, wait_time:16s
+
+20260927-07:14.52-471474(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1933, wait_time:17s
+
+20260927-07:14.53-471591(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2029, wait_time:18s
+
+20260927-07:14.54-471743(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2127, wait_time:19s
+
+20260927-07:14.55-472005(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2219, wait_time:20s
+
+20260927-07:14.56-472128(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2333, wait_time:21s
+
+20260927-07:14.57-472570(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2374, wait_time:22s
+
+20260927-07:14.58-476049(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2440, wait_time:23s
+
+20260927-07:14.59-476551(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2490, wait_time:24s
+
+20260927-07:15.00-476654(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2545, wait_time:25s
+
+20260927-07:15.01-476827(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2637, wait_time:26s
+
+20260927-07:15.02-477318(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2714, wait_time:27s
+
+20260927-07:15.03-475227(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2787, wait_time:28s
+
+20260927-07:15.04-482287(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2866, wait_time:29s
+
+20260927-07:15.05-482467(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2945, wait_time:30s
+
+20260927-07:15.06-482658(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3024, wait_time:31s
+
+20260927-07:15.07-482831(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3101, wait_time:32s
+
+20260927-07:15.08-483062(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3175, wait_time:33s
+
+20260927-07:15.09-483259(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3203, wait_time:34s
+
+20260927-07:15.10-124404(us) 00202 ! operator()      (mako.hh:233):      Recieved a zero length log
+20260927-07:15.10-124484(us) 00202 ! operator()      (mako.hh:233):      Recieved a zero length log
+20260927-07:15.10-483425(us) 00202 * wait_for_termination (mako.hh:538):      follower is waiting for being ended: 2/2, noops_cnt:0, replay_batch:3207, wait_time:35s
+
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:140] 2026-10-27 07:15:10.123 | Recieved a zero length log
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:140] 2026-10-27 07:15:10.123 | Recieved a zero length log
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:999] 2026-10-27 07:15:12.483 | shutdown Server Control Service after task finish total submit 0
+I [/work/lim/third_party/mako/src/deptran/benchmark_control_rpc.cc:43] 2026-10-27 07:15:12.484 | Shutdown Server Control Service
+I [/work/lim/third_party/mako/src/deptran/benchmark_control_rpc.cc:43] 2026-10-27 07:15:12.484 | Shutdown Server Control Service
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:311] 2026-10-27 07:15:12.500 | all server workers have shut down.

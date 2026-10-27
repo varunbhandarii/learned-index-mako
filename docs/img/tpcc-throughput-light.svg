@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="330" viewBox="0 0 680 330" role="img" aria-label="TPC-C throughput on Mako (higher is better)" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
+<title>TPC-C throughput on Mako (higher is better)</title>
+<desc>Thousands of transactions per second, median of interleaved runs, 1 shard</desc>
+<rect x="0.5" y="0.5" width="679" height="329" rx="10" fill="#fcfcfb" stroke="rgba(11,11,11,0.10)"/>
+<text x="64" y="30" fill="#0b0b0b" font-size="15" font-weight="600">TPC-C throughput on Mako (higher is better)</text>
+<text x="64" y="49" fill="#52514e" font-size="12">Thousands of transactions per second, median of interleaved runs, 1 shard</text>
+<rect x="64" y="62" width="10" height="10" rx="2" fill="#2a78d6"/><text x="80" y="71" fill="#52514e" font-size="12">Masstree only</text><rect x="179" y="62" width="10" height="10" rx="2" fill="#eb6834"/><text x="195" y="71" fill="#52514e" font-size="12">ALEX on item, stock, warehouse, district</text>
+<line x1="64" x2="656" y1="290.0" y2="290.0" stroke="#c3c2b7" stroke-width="1"/><text x="56" y="294.0" fill="#898781" font-size="11" text-anchor="end" style="font-variant-numeric: tabular-nums">0</text>
+<line x1="64" x2="656" y1="224.0" y2="224.0" stroke="#e1e0d9" stroke-width="1"/><text x="56" y="228.0" fill="#898781" font-size="11" text-anchor="end" style="font-variant-numeric: tabular-nums">100</text>
+<line x1="64" x2="656" y1="158.0" y2="158.0" stroke="#e1e0d9" stroke-width="1"/><text x="56" y="162.0" fill="#898781" font-size="11" text-anchor="end" style="font-variant-numeric: tabular-nums">200</text>
+<line x1="64" x2="656" y1="92.0" y2="92.0" stroke="#e1e0d9" stroke-width="1"/><text x="56" y="96.0" fill="#898781" font-size="11" text-anchor="end" style="font-variant-numeric: tabular-nums">300</text>
+<path d="M177.0,290.0 V227.9 Q177.0,223.9 181.0,223.9 H207.0 Q211.0,223.9 211.0,227.9 V290.0 Z" fill="#2a78d6"><title>Masstree only, 2 threads: 100</title></path><text x="194.0" y="217.9" fill="#52514e" font-size="11" text-anchor="middle" style="font-variant-numeric: tabular-nums">100</text>
+<path d="M213.0,290.0 V206.9 Q213.0,202.9 217.0,202.9 H243.0 Q247.0,202.9 247.0,206.9 V290.0 Z" fill="#eb6834"><title>ALEX on item, stock, warehouse, district, 2 threads: 132</title></path><text x="230.0" y="196.9" fill="#52514e" font-size="11" text-anchor="middle" style="font-variant-numeric: tabular-nums">132</text>
+<text x="212.0" y="312" fill="#52514e" font-size="12" text-anchor="middle">2 threads</text>
+<path d="M473.0,290.0 V172.4 Q473.0,168.4 477.0,168.4 H503.0 Q507.0,168.4 507.0,172.4 V290.0 Z" fill="#2a78d6"><title>Masstree only, 4 threads: 184</title></path><text x="490.0" y="162.4" fill="#52514e" font-size="11" text-anchor="middle" style="font-variant-numeric: tabular-nums">184</text>
+<path d="M509.0,290.0 V151.5 Q509.0,147.5 513.0,147.5 H539.0 Q543.0,147.5 543.0,151.5 V290.0 Z" fill="#eb6834"><title>ALEX on item, stock, warehouse, district, 4 threads: 216</title></path><text x="526.0" y="141.5" fill="#52514e" font-size="11" text-anchor="middle" style="font-variant-numeric: tabular-nums">216</text>
+<text x="508.0" y="312" fill="#52514e" font-size="12" text-anchor="middle">4 threads</text>
+</svg>

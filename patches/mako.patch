@@ -7,7 +7,7 @@ Changes to Mako (makodb/mako @ 0b62cf1) used by learned-index-mako.
   links it into the mako library.
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3a7c9af27..92b044acc 100644
+index 3a7c9af27..a0597267e 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -681,6 +681,15 @@ target_compile_definitions(mako PUBLIC CONFIG_H=\"${CONFIG_H}\")
@@ -26,6 +26,15 @@ index 3a7c9af27..92b044acc 100644
  
  # ------------------------------------- build apps -----------------------------------------------
  
+@@ -735,6 +744,8 @@ add_apps(simplePaxos examples/simplePaxos.cc)
+ add_apps(test_rocksdb_persistence examples/test_rocksdb_persistence.cc)
+ add_apps(rocksdb_replay_app src/mako/benchmarks/rocksdb_replay_app.cc)
+ add_apps(test_callback_demo examples/test_callback_demo.cc)
++# learned-index-mako: index-only microbenchmark, ALEX vs Mako's Masstree configuration.
++add_apps(lim_index_bench "${LIM_ROOT}/bench/index_bench.cc")
+ add_apps(test_ordered_callbacks examples/test_ordered_callbacks.cc)
+ add_apps(test_partitioned_queues examples/test_partitioned_queues.cc)
+ add_apps(test_stress_partitioned_queues examples/test_stress_partitioned_queues.cc)
 diff --git a/src/mako/benchmarks/sto/MassTrans.hh b/src/mako/benchmarks/sto/MassTrans.hh
 index ccbeef5f4..24fab3675 100644
 --- a/src/mako/benchmarks/sto/MassTrans.hh

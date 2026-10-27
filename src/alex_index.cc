@@ -124,9 +124,9 @@ void print_report() {
 
 struct AlexIndex::Impl {
   mutable std::shared_mutex mu;
-  // ALEX has no const lookup that is cheaper than the non-const one, and iterators are only
-  // used under mu, so the map is mutable.
-  mutable Map map;
+  // Held by pointer so rebuild() can swap in a freshly bulk-loaded map. Lookups go through
+  // ALEX's non-const API, and only under mu.
+  std::unique_ptr<Map> map = std::make_unique<Map>();
   size_t key_len = 0;  // guarded by mu
   size_t count = 0;    // guarded by mu
   // Written only while mu is held exclusively; read without the lock by version().
@@ -158,8 +158,8 @@ void* AlexIndex::find(std::string_view key, uint64_t* version) const {
   if (version) *version = impl_->version.load(std::memory_order_relaxed);
   uint64_t code;
   if (!impl_->encode(key, &code)) return nullptr;
-  auto it = impl_->map.find(code);
-  return it == impl_->map.end() ? nullptr : it.payload();
+  auto it = impl_->map->find(code);
+  return it == impl_->map->end() ? nullptr : it.payload();
 }
 
 AlexIndex::InsertResult AlexIndex::insert_if_absent(std::string_view key, void* value) {
@@ -172,13 +172,13 @@ AlexIndex::InsertResult AlexIndex::insert_if_absent(std::string_view key, void* 
   if (code == kReservedCode) return result;
 
   if (impl_->key_len == 0) impl_->key_len = key.size();
-  auto it = impl_->map.find(code);
-  if (it != impl_->map.end()) {
+  auto it = impl_->map->find(code);
+  if (it != impl_->map->end()) {
     result.status = InsertStatus::kExists;
     result.existing = it.payload();
     return result;
   }
-  impl_->map.insert(code, value);
+  impl_->map->insert(code, value);
   ++impl_->count;
   impl_->bump_version();
   result.status = InsertStatus::kInserted;
@@ -190,8 +190,8 @@ bool AlexIndex::replace(std::string_view key, void* value) {
   std::unique_lock<std::shared_mutex> lock(impl_->mu);
   uint64_t code;
   if (!impl_->encode(key, &code)) return false;
-  auto it = impl_->map.find(code);
-  if (it == impl_->map.end()) return false;
+  auto it = impl_->map->find(code);
+  if (it == impl_->map->end()) return false;
   it.payload() = value;
   return true;
 }
@@ -200,13 +200,23 @@ void* AlexIndex::erase(std::string_view key) {
   std::unique_lock<std::shared_mutex> lock(impl_->mu);
   uint64_t code;
   if (!impl_->encode(key, &code)) return nullptr;
-  auto it = impl_->map.find(code);
-  if (it == impl_->map.end()) return nullptr;
+  auto it = impl_->map->find(code);
+  if (it == impl_->map->end()) return nullptr;
   void* value = it.payload();
-  impl_->map.erase(it);
+  impl_->map->erase(it);
   --impl_->count;
   impl_->bump_version();
   return value;
+}
+
+void AlexIndex::rebuild() {
+  std::unique_lock<std::shared_mutex> lock(impl_->mu);
+  std::vector<std::pair<uint64_t, void*>> entries;
+  entries.reserve(impl_->count);
+  for (auto it = impl_->map->begin(); !it.is_end(); ++it) entries.emplace_back(it.key(), it.payload());
+  auto fresh = std::make_unique<Map>();
+  if (!entries.empty()) fresh->bulk_load(entries.data(), static_cast<int>(entries.size()));
+  impl_->map = std::move(fresh);
 }
 
 size_t AlexIndex::scan(std::string_view lo, const std::string_view* hi, ScanState* state,
@@ -231,7 +241,7 @@ size_t AlexIndex::scan(std::string_view lo, const std::string_view* hi, ScanStat
   if (max == 0) return 0;
 
   size_t n = 0;
-  for (auto it = impl_->map.lower_bound(state->next); !it.is_end() && n < max; ++it) {
+  for (auto it = impl_->map->lower_bound(state->next); !it.is_end() && n < max; ++it) {
     uint64_t code = it.key();
     if (code > state->last) break;
     out[n++] = Entry{code, it.payload()};
@@ -267,8 +277,8 @@ size_t AlexIndex::rscan(std::string_view lo, const std::string_view* hi, ScanSta
   if (max == 0) return 0;
 
   // Start at the last key <= state->next: step back from the first key above it.
-  auto above = impl_->map.upper_bound(state->next);
-  Map::ReverseIterator it = above.is_end() ? impl_->map.rbegin() : Map::ReverseIterator(above);
+  auto above = impl_->map->upper_bound(state->next);
+  Map::ReverseIterator it = above.is_end() ? impl_->map->rbegin() : Map::ReverseIterator(above);
   while (!it.is_end() && it.key() > state->next) ++it;
 
   size_t n = 0;
@@ -307,7 +317,7 @@ size_t AlexIndex::key_len() const {
 
 size_t AlexIndex::index_bytes() const {
   std::shared_lock<std::shared_mutex> lock(impl_->mu);
-  return static_cast<size_t>(impl_->map.data_size() + impl_->map.model_size());
+  return static_cast<size_t>(impl_->map->data_size() + impl_->map->model_size());
 }
 
 void report_at_exit(const std::string& table_name, const AlexIndex* index) {

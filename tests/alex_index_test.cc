@@ -209,6 +209,28 @@ TEST(AlexIndex, ScanReportsStructuralChangeBetweenBatches) {
   EXPECT_TRUE(st.done);
 }
 
+TEST(AlexIndex, RebuildKeepsContentsAndVersion) {
+  AlexIndex idx;
+  std::map<std::string, void*> ref;
+  for (uint64_t k = 1; k <= 50000; ++k) {
+    idx.insert_if_absent(be(k * 3, 4), ptr(k));
+    ref[be(k * 3, 4)] = ptr(k);
+  }
+  size_t before = idx.index_bytes();
+  uint64_t version = idx.version();
+  idx.rebuild();
+  EXPECT_EQ(idx.version(), version);
+  EXPECT_EQ(idx.size(), ref.size());
+  EXPECT_LE(idx.index_bytes(), before);  // bulk loading packs at least as tightly
+  EXPECT_EQ(scan_all(idx, "", nullptr, false), ref_scan(ref, "", nullptr, false));
+  EXPECT_EQ(idx.insert_if_absent(be(1, 4), ptr(1)).status, Status::kInserted);
+
+  AlexIndex empty;
+  empty.rebuild();
+  EXPECT_EQ(empty.size(), 0u);
+  EXPECT_EQ(empty.find(be(1, 4)), nullptr);
+}
+
 TEST(AlexIndex, IndexBytesAreReported) {
   AlexIndex idx;
   for (uint64_t k = 1; k <= 100000; ++k) idx.insert_if_absent(be(k, 4), ptr(k));
@@ -285,6 +307,7 @@ TEST_P(AlexIndexDifferential, MatchesStdMap) {
         break;
       }
     }
+    if (op % 2500 == 2499) idx.rebuild();
     ASSERT_EQ(idx.size(), ref.size());
   }
 }
@@ -327,6 +350,7 @@ TEST(AlexIndex, ConcurrentReadersAndWriter) {
     } else {
       idx.erase(be(k, 4));
     }
+    if (i % 5000 == 4999) idx.rebuild();
   }
   stop = true;
   for (auto& r : readers) r.join();

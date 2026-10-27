@@ -74,6 +74,11 @@ class AlexIndex {
   // Removes a key. Returns the value it had, or nullptr if it was absent.
   void* erase(std::string_view key);
 
+  // Rebuilds the index from its current entries with ALEX's bulk loader, which packs nodes
+  // more tightly than a history of inserts does. The key set doesn't change, so neither
+  // does version().
+  void rebuild();
+
   // Forward scan of keys k with lo <= k < hi, ascending; hi == nullptr means unbounded.
   // Reverse scan of keys k with hi < k <= lo, descending; hi == nullptr means unbounded.
   // Bounds may have any length. Each call writes up to max entries to out and returns how

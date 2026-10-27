@@ -1,0 +1,186 @@
+=========================================
+Configuration:
+=========================================
+  Number of shards:  1
+  Shard index:       0
+  Number of threads: 2
+  Cluster:           learner
+  Micro benchmark:   disabled
+  Replicated mode:   enabled
+=========================================
+20260927-07:14.31-392582(us) 00204 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:78] 2026-10-27 07:14:31.393 | PWD : /work/lim/third_party/mako
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:276] 2026-10-27 07:14:31.393 | starting process 204
+I [/work/lim/third_party/mako/src/deptran/config.cc:290] 2026-10-27 07:14:31.393 | LoadYML: config/1leader_2followers/paxos2_shardidx0.yml
+I [/work/lim/third_party/mako/src/deptran/config.cc:290] 2026-10-27 07:14:31.393 | LoadYML: config/occ_paxos.yml
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:285] 2026-10-27 07:14:31.394 | server_infos, number of sites: 2, proc_name: learner
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:291] 2026-10-27 07:14:31.415 | parition id of each Paxos group is 1, site-name: s402, site-id: 7
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:291] 2026-10-27 07:14:31.442 | parition id of each Paxos group is 0, site-name: s401, site-id: 3
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:297] 2026-10-27 07:14:31.442 | running machine-id: 3
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:106] 2026-10-27 07:14:31.442 | waiting for server setup threads.
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:92] 2026-10-27 07:14:31.442 | launching site: 7, bind address 0.0.0.0:17302
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:198] 2026-10-27 07:14:31.443 | [service]loc_id: 3, name: s402, proc: learner, id: 7
+starting server at 0.0.0.0:17302
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:221] 2026-10-27 07:14:31.443 | Server s402 ready at 0.0.0.0:17302
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:14] 2026-10-27 07:14:31.443 | setup paxos communicator
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:31.443 | connect to site: 127.0.0.1:17001 (attempt 0)
+E [/work/lim/third_party/mako/src/rrr/rpc/client.cpp:194] 2026-10-27 07:14:31.444 | rrr::Client: connect(127.0.0.1:17001): Connection refused
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:92] 2026-10-27 07:14:31.444 | launching site: 3, bind address 0.0.0.0:17301
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:198] 2026-10-27 07:14:31.444 | [service]loc_id: 3, name: s401, proc: learner, id: 3
+starting server at 0.0.0.0:17301
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:221] 2026-10-27 07:14:31.445 | Server s401 ready at 0.0.0.0:17301
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:14] 2026-10-27 07:14:31.445 | setup paxos communicator
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:31.445 | connect to site: 127.0.0.1:17001 (attempt 0)
+E [/work/lim/third_party/mako/src/rrr/rpc/client.cpp:194] 2026-10-27 07:14:31.445 | rrr::Client: connect(127.0.0.1:17001): Connection refused
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17001 (attempt 1)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17101 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17201 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17301 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17002 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17102 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17202 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.444 | connect to site: 127.0.0.1:17302 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:103] 2026-10-27 07:14:32.444 | site 7 launched!
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17001 (attempt 1)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17101 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17201 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17301 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17002 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17102 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17202 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/communicator.cc:175] 2026-10-27 07:14:32.445 | connect to site: 127.0.0.1:17302 (attempt 0)
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:103] 2026-10-27 07:14:32.445 | site 3 launched!
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:110] 2026-10-27 07:14:32.445 | done waiting for server setup threads.
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:255] 2026-10-27 07:14:32.445 | heartbeat setup for s401 on 0.0.0.0:27301
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:255] 2026-10-27 07:14:32.445 | heartbeat setup for s402 on 0.0.0.0:27302
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:117] 2026-10-27 07:14:32.445 | server workers' communicators setup
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:756] 2026-10-27 07:14:32.446 | start a heartbeatBackground, addr:127.0.0.1:27001
+E [/work/lim/third_party/mako/src/rrr/rpc/client.cpp:194] 2026-10-27 07:14:32.446 | rrr::Client: connect(127.0.0.1:27001): Connection refused
+tpcc settings:
+  cross_partition_transactions : 1
+  read_only_snapshots          : 1
+  partition_locks              : 0
+  separate_tree_per_partition  : 1
+  new_order_remote_item_pct    : 1
+  new_order_fast_id_gen        : 1
+  uniform_item_dist            : 0
+  order_status_scan_hack       : 0
+  workload_mix                 : [45, 43, 4, 4, 4]
+20260927-07:14.35-454965(us) 00204 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+20260927-07:14.35-454993(us) 00204 * ParseOldFormat  (configuration.cc:66): Using old configuration format
+reinitializing partitions under failure
+reinitializing partitions under failure - DONE
+[TRANSPORT] Using default: rrr
+[TRANSPORT] Using default: rrr
+20260927-07:14.35-456210(us) 00204 * Initialize      (rrr_rpc_backend.cc:58): RrrRpcBackend::Initialize: poll_thread_worker_ created, is_some=1
+20260927-07:14.35-456261(us) 00204 * Initialize      (rrr_rpc_backend.cc:58): RrrRpcBackend::Initialize: poll_thread_worker_ created, is_some=1
+20260927-07:14.35-456276(us) 00204 * Initialize      (rrr_rpc_backend.cc:88): RrrRpcBackend initialized on 127.0.0.1:34007 (listening on 0.0.0.0:34007)
+20260927-07:14.35-456298(us) 00204 * Initialize      (rrr_rpc_backend.cc:88): RrrRpcBackend initialized on 127.0.0.1:34008 (listening on 0.0.0.0:34008)
+20260927-07:14.35-456322(us) 00204 * FastTransport   (fasttransport.cc:116): FastTransport initialized with rrr/rpc backend on 127.0.0.1:34008
+20260927-07:14.35-456328(us) 00204 * RunEventLoop    (rrr_rpc_backend.cc:518): RrrRpcBackend::RunEventLoop: Starting event loop
+20260927-07:14.35-456337(us) 00204 * FastTransport   (fasttransport.cc:116): FastTransport initialized with rrr/rpc backend on 127.0.0.1:34007
+20260927-07:14.35-456351(us) 00204 * RunEventLoop    (rrr_rpc_backend.cc:518): RrrRpcBackend::RunEventLoop: Starting event loop
+20260927-07:14.35-456431(us) 00204 ! modeMonitor     (common2.h:93):     start for modeMonitor, running:0
+start worker:2108
+allocator::Initialize()
+  hugepgsize: 2097152
+  use MADV_WILLNEED: 1
+  mmap() region [0x7f195f7fd000, 0x7f199f9fd000)
+cpu0 owns [0x7f195f800000, 0x7f197f800000)
+cpu1 owns [0x7f197f800000, 0x7f199f800000)
+Database Benchmark:
+  pid: 204
+settings:
+  num-cpus    : 4
+  num-threads : 2
+  shardIndex  : 0
+  paxos_proc_name  : learner
+  nshards     : 1
+  is_micro    : 0
+  is_replicated : 1
+  var-encode  : yes
+  allocator   : jemalloc
+system properties:
+  tuple_prefetch          : no
+  btree_node_prefetch     : yes
+20260927-07:14.36-459841(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:6, wait_time:1s
+
+20260927-07:14.37-460038(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:9, wait_time:2s
+
+we can start a advancer
+start the advancer thread...
+20260927-07:14.38-460152(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:175, wait_time:3s
+
+20260927-07:14.39-460291(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:335, wait_time:4s
+
+20260927-07:14.40-460434(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:460, wait_time:5s
+
+20260927-07:14.41-460949(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:609, wait_time:6s
+
+20260927-07:14.42-462693(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:713, wait_time:7s
+
+20260927-07:14.43-464859(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:859, wait_time:8s
+
+20260927-07:14.44-476223(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:979, wait_time:9s
+
+20260927-07:14.45-476349(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1114, wait_time:10s
+
+20260927-07:14.46-476456(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1226, wait_time:11s
+
+20260927-07:14.47-476638(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1374, wait_time:12s
+
+20260927-07:14.48-480040(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1489, wait_time:13s
+
+20260927-07:14.49-480178(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1610, wait_time:14s
+
+20260927-07:14.50-480319(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1724, wait_time:15s
+
+20260927-07:14.51-480439(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1832, wait_time:16s
+
+20260927-07:14.52-480689(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:1931, wait_time:17s
+
+20260927-07:14.53-480866(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2026, wait_time:18s
+
+20260927-07:14.54-480990(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2130, wait_time:19s
+
+20260927-07:14.55-481189(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2227, wait_time:20s
+
+20260927-07:14.56-481453(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2329, wait_time:21s
+
+20260927-07:14.57-482052(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2374, wait_time:22s
+
+20260927-07:14.58-485049(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2437, wait_time:23s
+
+20260927-07:14.59-485434(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2483, wait_time:24s
+
+20260927-07:15.00-486950(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2544, wait_time:25s
+
+20260927-07:15.01-487851(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2635, wait_time:26s
+
+20260927-07:15.02-489858(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2705, wait_time:27s
+
+20260927-07:15.03-485271(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2788, wait_time:28s
+
+20260927-07:15.04-485391(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2863, wait_time:29s
+
+20260927-07:15.05-485543(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:2945, wait_time:30s
+
+20260927-07:15.06-485723(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3025, wait_time:31s
+
+20260927-07:15.07-485881(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3098, wait_time:32s
+
+20260927-07:15.08-486017(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3172, wait_time:33s
+
+20260927-07:15.09-486132(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 0/2, noops_cnt:0, replay_batch:3201, wait_time:34s
+
+20260927-07:15.10-125180(us) 00204 ! operator()      (mako.hh:233):      Recieved a zero length log
+20260927-07:15.10-133852(us) 00204 ! operator()      (mako.hh:233):      Recieved a zero length log
+20260927-07:15.10-486301(us) 00204 * wait_for_termination (mako.hh:534):      learner is waiting for being ended: 2/2, noops_cnt:0, replay_batch:3207, wait_time:35s
+
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:140] 2026-10-27 07:15:10.124 | Recieved a zero length log
+I [/work/lim/third_party/mako/src/deptran/paxos_worker.cc:140] 2026-10-27 07:15:10.133 | Recieved a zero length log
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:999] 2026-10-27 07:15:12.486 | shutdown Server Control Service after task finish total submit 0
+I [/work/lim/third_party/mako/src/deptran/benchmark_control_rpc.cc:43] 2026-10-27 07:15:12.486 | Shutdown Server Control Service
+I [/work/lim/third_party/mako/src/deptran/benchmark_control_rpc.cc:43] 2026-10-27 07:15:12.486 | Shutdown Server Control Service
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:770] 2026-10-27 07:15:12.491 | heartbeatBackground is ended!
+I [/work/lim/third_party/mako/src/deptran/paxos_main_helper.cc:311] 2026-10-27 07:15:12.499 | all server workers have shut down.
